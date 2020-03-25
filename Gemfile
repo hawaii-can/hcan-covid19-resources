@@ -1,0 +1,6 @@
+ruby '2.6.3'
+source 'https://rubygems.org'
+
+gem 'dotenv'
+gem 'smarter_csv'
+gem 'httparty'
