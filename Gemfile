@@ -4,4 +4,5 @@ source 'https://rubygems.org'
 gem 'dotenv'
 gem 'smarter_csv'
 gem 'httparty'
-gem "aws-sdk-s3"
+gem 'aws-sdk-s3'
+gem 'mapbox-sdk'
