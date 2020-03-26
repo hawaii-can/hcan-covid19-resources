@@ -269,18 +269,20 @@ $(function() {
 		map.flyTo(marker.getLatLng(), 13, {duration: 0.75});
 
 		var $row = $('.row.' + id);
-		$('.row.map-selected').removeClass('map-selected');
-		$row.addClass('map-selected');
-		var scroll = $row.offset().top;
+		if ($row.length > 0) {
+			$('.row.map-selected').removeClass('map-selected');
+			$row.addClass('map-selected');
+			var scroll = $row.offset().top;
 
-		if (windowWidth <= 600) {
-			scroll -= 300;
+			if (windowWidth <= 600) {
+				scroll -= 300;
+			}
+
+			$('html, body').animate({
+				scrollTop: scroll
+			}, 250);
 		}
-
-		$('html, body').animate({
-			scrollTop: scroll
-		}, 250);
-
+		
 		$('#map-reset').fadeIn(250);
 	}
 
