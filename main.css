@@ -18,6 +18,25 @@ h2 {
 	margin-bottom: 10px;
 }
 
+#top-links {
+	margin-top: 10px;
+	margin-bottom: 25px;
+}
+
+#top-links a:link, #top-links a:visited {
+	font-size: 0.8em;
+	line-height: 1em;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	padding: 5px;
+	color: #333;
+	text-decoration: none;
+}
+
+#top-links a:hover {
+	background-color: #ccc;
+}
+
 .category-lists {
 	margin: 20px 0;
 }
@@ -45,6 +64,7 @@ h2 {
 .category-label:hover, .location-label:hover, .type-label:hover {
 	cursor: pointer;
 	background: #ccc;
+	border-width: 3px;
 }
 
 .category-label.selected, .location-label.selected, .type-label.selected {
