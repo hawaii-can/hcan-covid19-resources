@@ -74,7 +74,7 @@ $(function() {
 				});
 				var marker = L.marker([location.lat, location.lng],{
 					icon: icon
-				}).addTo(map).on('click', markerClick);
+				});
 				markers[location.address_id] = {
 					marker: marker
 				}
@@ -119,6 +119,7 @@ $(function() {
 				if (markers[addressID] !== undefined) {
 					hasLocation = true;
 					var marker = markers[addressID].marker;
+					marker.addTo(map).on('click', markerClick);
 
 					markers[addressID]['category'] = parameterize('category', row.Category);
 					markers[addressID]['location'] = parameterize('location', row.Location);
