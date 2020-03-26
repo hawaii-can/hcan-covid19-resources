@@ -111,12 +111,18 @@ $(function() {
 			var hasLocation = false;
 			var addressID;
 
+			// console.log(row);
+
 			if (usingLocation) {
 				addressID = [row.Street, row.City, row.ZIP].join('').toLowerCase().replace(/[^a-z0-9_]/g, "");
 
 				if (markers[addressID] !== undefined) {
 					hasLocation = true;
 					var marker = markers[addressID].marker;
+
+					markers[addressID]['category'] = parameterize('category', row.Category);
+					markers[addressID]['location'] = parameterize('location', row.Location);
+
 					$(marker._icon).addClass(parameterize('category', row.Category));
 					$(marker._icon).addClass(parameterize('location', row.Location));
 					$(marker._icon).attr('id',rowID);
@@ -196,24 +202,28 @@ $(function() {
 			currentLocation = "location-everywhere";
 		}
 
+		var markerFilters = {};
+
 		var selectedClasses = "";
 		if (currentCategory != "") {
 			$('span.' + currentCategory).addClass('selected');
 			if (currentCategory != "category-everything") {
 				selectedClasses += "." + currentCategory;	
+				markerFilters['category'] = currentCategory;
 			}
 		}
 		if (currentLocation != "") {
 			$('span.' + currentLocation).addClass('selected');
 			if (currentLocation != "location-everywhere") {
 				selectedClasses += "." + currentLocation;
+				markerFilters['location'] = currentLocation;
 			}
 		}
 
 		console.log(selectedClasses);
 
-		// if ( currentCategory != "" || currentLocation != "") {
 		if (selectedClasses != "") {
+			// Perform filtering
 			$('.row').hide();
 			$('.row' + selectedClasses).show();
 
@@ -222,12 +232,24 @@ $(function() {
 
 			$('#map-reset').fadeIn(250);
 		} else {
+			// Everything selected, so show everything
 			$('.row').show();
 			$('.leaflet-marker-icon').show();
 		}
 
 		$('.row.map-selected').removeClass('map-selected');
-		map.flyTo([21.311389, -157.796389], defaultZoom, {duration: 0.5});
+
+		// Update markers
+		var selectedMarkers = _(markers).where(markerFilters);
+		console.log(markers, markerFilters, selectedMarkers);
+		if (selectedMarkers != undefined && selectedMarkers.length > 0) {
+			var bounds = _(selectedMarkers).map(function(m) { return m.marker.getLatLng() });
+			map.flyToBounds(bounds, {duration: 0.75});
+		} else {
+			map.flyTo([21.311389, -157.796389], defaultZoom, {duration: 0.75});	
+		}
+
+		
 		$('html, body').animate({
 			scrollTop: 0
 		}, 250);
@@ -244,7 +266,7 @@ $(function() {
 
 		var id = $(marker._icon).attr('id');
 
-		map.flyTo(marker.getLatLng(), 13, {duration: 0.5});
+		map.flyTo(marker.getLatLng(), 13, {duration: 0.75});
 
 		var $row = $('.row.' + id);
 		$('.row.map-selected').removeClass('map-selected');
