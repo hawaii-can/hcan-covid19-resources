@@ -24,27 +24,49 @@
 </head>
 <body>
 	
-	<header>
-		<div class="wrap">
-			<h1>Hawaiʻi COVID-19 Resources</h1>
+	<div id="main-wrap">
+
+		<div id="map-wrap">
+			<div id="map-reset" style="display:none;">Reset</div>
+			<div id="map"></div>
 		</div>
 		
-	</header>
+		<div id="list-wrap">
+			<header>
+				<h1>Hawaiʻi COVID-19 Resources</h1>
+				<div id="loading">Loading...</div>
+			</header>
 
-	<div id="list-wrap">
-		<header class="category-lists">
-			I'm looking for
-			<div id="category-list">
-				<div class="caption">Category</div>
-			</div>
-			<div id="location-list">
-				<div class="caption">Location</div>
-			</div>
-		</header>
+			<div id="list-inside" style="display:none;">
+				<header class="category-lists">
+					<h2>I'm looking for…</h2>
 
-		<div id="list"></div>
+					<div id="type-list">
+						<div class="caption">Resource type</div>
+						<span class="type-label type-in-person selected">In-Person</span>
+						<span class="type-label type-online">Online</span>
+					</div>
+
+
+					<div id="category-list">
+						<div class="caption">Category</div>
+						<div class="only-in-person" id="category-list-in-person"></div>
+						<div class="only-online" id="category-list-online"></div>
+					</div>
+					<div id="location-list" class="only-in-person">
+						<div class="caption">Location</div>
+					</div>
+				</header>
+
+				<div id="list">
+					<div class="only-in-person"></div>
+					<div class="only-online"></div>
+				</div>
+			</div>
+		</div>
+
 	</div>
-	<div id="map"></div>
+
 	
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore-min.js"></script>
