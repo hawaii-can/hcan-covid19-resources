@@ -53,6 +53,7 @@ $(function() {
 			$('#category-list-online').append(html);
 		});
 
+
 		// Add unique locations as buttons.
 		var locations = _.chain(locationData).map(function(val) { return val.Location.trim()}).uniq().filter(function(val){ return val != "Online" }).value().sort();
 		locations.unshift("Everywhere");
@@ -65,8 +66,12 @@ $(function() {
 		$.getJSON("https://hcan-public-us-west.s3.amazonaws.com/covid_resource_locations.json", function(data) {
 			console.log(data);
 			_(data).each(function(location) {
-				var icon = new L.Icon.Default();
-				icon.options.shadowUrl = null;
+				var icon =  L.divIcon({
+					className: 'marker-icon',
+					html: '<i class="fas fa-map-pin fa-3x"></i>',
+					iconSize: [20,36],
+					iconAnchor: [10,36]
+				});
 				var marker = L.marker([location.lat, location.lng],{
 					icon: icon
 				}).addTo(map).on('click', markerClick);
@@ -85,6 +90,17 @@ $(function() {
 			$('#loading').slideUp(200);
 			$('#list-inside').slideDown(200);
 
+			// Assign colors
+			var allCategories = _.chain([categories, onlineCategories]).flatten().uniq().filter(function(val){ return val != "Everything" }).value().sort();
+			_(allCategories).each(function(category, index) {
+				var val = (1.0 / allCategories.length) * index;
+				var color = d3.interpolateViridis(val);
+				$('span.'+parameterize('category', category)).css({
+					'background-color': color,
+					'color': '#fff'
+				});
+				$('.leaflet-marker-icon.'+parameterize('category', category)).css('color', color);
+			});
 		});
 
 	}
@@ -140,7 +156,7 @@ $(function() {
 				html += "<p><span class='label'>Address</span> " + address + "</span>";
 			}
 			if (row.URL != "") {
-				html += "<p><a class='website-btn' href='" + row.URL + "' target='_blank'>Visit website</a></p>";
+				html += "<p><a class='website-btn' href='" + row.URL + "' target='_blank'><i class='fas fa-external-link-square-alt'></i> Visit website</a></p>";
 			}
 			html += "</div></div>";
 			$(appendEl).append(html);
@@ -223,6 +239,9 @@ $(function() {
 	}
 
 	function highlightMarker(marker) {
+		$('.selected-marker').removeClass('selected-marker');
+		$(marker._icon).addClass('selected-marker');
+
 		var id = $(marker._icon).attr('id');
 
 		map.flyTo(marker.getLatLng(), 13, {duration: 0.5});
@@ -286,6 +305,7 @@ $(function() {
 	$('#map-reset').click(function(){
 		currentCategory = "category-everything";
 		currentLocation = "location-everywhere";
+		$('.selected-marker').removeClass('selected-marker');
 		updateFilter();
 		$(this).fadeOut(250);
 	})

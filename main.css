@@ -29,7 +29,7 @@ h2 {
 }
 
 .category-label, .location-label, .type-label {
-	border: 1px solid #000;
+	border: 1px solid rgba(0,0,0,0.3);
 	border-radius: 5px;
 	padding: 5px;
 	margin-right: 5px;
@@ -43,7 +43,10 @@ h2 {
 }
 
 .category-label.selected, .location-label.selected, .type-label.selected {
-	background: #ddd;
+	color: #fff;
+	background: #666;
+	border-width: 3px;
+	font-weight: bold;
 }
 
 .category-label.selected:after, .location-label.selected:after {
@@ -100,7 +103,7 @@ h2 {
 
 .row .website-btn:link, .row .website-btn:visited {
 	display: inline-block;
-	background: #666;
+	background: #777;
 	padding: 5px;
 	border-radius: 5px;
 	color: #fff;
@@ -108,7 +111,7 @@ h2 {
 }
 
 .row .website-btn:hover  {
-	background: #444;
+	background: #666;
 }
 
 .row.map-selected {
@@ -133,19 +136,32 @@ h2 {
 }
 
 #map-reset {
-	background: #eee;
-	border: 1px solid #fff;
-	position: absolute;
-	top: 20px;
-	right: 20px;
-	padding: 10px;
-	border-radius: 5px;
-	z-index: 10000;
+	background: #222;
+    border: 3px solid #fff;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 7px 14px;
+    border-radius: 10px;
+    z-index: 10000;
+    color: #fff;
+    font-weight: bold;
+    box-shadow: 0 0 20px #000;
 }
 
 #map-reset:hover {
 	cursor: pointer;
-	background: #ddd;
+	background: #444;
+}
+
+.leaflet-marker-icon i {
+	/*text-shadow: 0 0 3px rgba(0,0,0,0.5);*/
+	text-shadow: 0 0 2px #FFF;
+}
+
+.selected-marker i {
+    font-size: 5em;
+    line-height: 0.4em;
 }
 
 #list-wrap {
