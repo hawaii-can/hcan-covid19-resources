@@ -31,6 +31,8 @@ h2 {
 	padding: 5px;
 	color: #333;
 	text-decoration: none;
+	display: inline-block;
+	margin-bottom: 3px;
 }
 
 #top-links a:hover {
