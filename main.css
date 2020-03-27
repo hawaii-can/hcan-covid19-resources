@@ -218,3 +218,46 @@ h2 {
 	max-width: 600px;
 	margin: 0 auto;
 }
+
+#embed-wrap {
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	left: 0;
+	background: rgba(0,0,0,0.5);
+	z-index: 10000000;
+}
+
+#embed-info {
+	background: #fff;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	padding: 20px;
+	width: 95%;
+	max-width: 400px;
+	margin: 30px auto;
+}
+
+#embed-info textarea {
+	margin-top: 10px;
+	width: 100%;
+}
+
+#embed-close {
+	font-size: 0.8em;
+	line-height: 1em;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	padding: 5px;
+	color: #333;
+	text-decoration: none;
+	display: inline-block;
+	margin-bottom: 3px;
+	float: right;
+}
+
+#embed-close:hover {
+	background-color: #ccc;
+	cursor: pointer;
+}

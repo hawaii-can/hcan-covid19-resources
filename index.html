@@ -23,6 +23,17 @@
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
 </head>
 <body>
+
+	<div id="embed-wrap" style="display:none;">
+		<div id="embed-info">
+			<div id="embed-close">&times; Close</div>
+
+
+			You are welcome to embed this map on your own website! Copy and paste the code below.
+
+			<textarea readonly><iframe src="https://covid19.hawaii-can.org/" width="100%" height="750px"></iframe></textarea>
+		</div>
+	</div>
 	
 	<div id="main-wrap">
 
@@ -39,6 +50,7 @@
 				<div id="top-links">
 					<a href="https://www.facebook.com/sharer/sharer.php?u=https%3A//covid19.hawaii-can.org" target="_blank"><i class="fa fa-facebook-square"></i> Share</a>
 					<a href="https://twitter.com/intent/tweet?text=Hawai%CA%BBi%20%23COVID19%20resources,%20by%20%40HCAN_HI%3A%20https%3A//covid19.hawaii-can.org" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+					<a href="#" id="show-embed"><i class="fas fa-share-alt-square"></i> Embed</a>
 					<a href="https://www.hawaii-can.org/covid_19_resources_contribute" target="_blank"><i class="fa fa-plus-square"></i> Contribute</a>
 					<a href="mailto:info@hawaii-can.org" target="_blank"><i class="fa fa-envelope-square"></i> Contact</a>
 					<a href="http://hawaiicovid19.com/" target="_blank"><i class="fas fa-flag"></i> State website</a>

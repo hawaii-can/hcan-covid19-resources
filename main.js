@@ -335,6 +335,18 @@ $(function() {
 		$(this).fadeOut(250);
 	})
 
+	$('#show-embed').click(function(e) {
+		e.preventDefault();
+		$('#embed-wrap').fadeIn(250);
+		return false;
+	});
+
+	$('#embed-close').click(function(){
+		$('#embed-wrap').fadeOut(250);
+	});
+
+
+
 	$(window).resize(calculateLayout);
 
 });
