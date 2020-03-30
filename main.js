@@ -351,12 +351,13 @@ $(function() {
 		Cookies.set('hideSignup', 'true', {expires: 14})
 	});
 
-	if ( Cookies.get('hideSignup') == undefined ) {
+	if ( Cookies.get('hideSignup') == undefined && location.hash != "#success" ) {
 		$('#updates-signup-wrap').show();
 	}
 
 	if (location.hash == "#success") {
 		$('#updates-signup-success-wrap').show();
+		Cookies.set('hideSignup', 'true', {expires: 14})
 	}
 
 
