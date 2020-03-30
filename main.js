@@ -32,8 +32,8 @@ $(function() {
 
 
 	function init(data, tabletop) {
-		console.log(data);
-		console.log(tabletop);
+		// console.log(data);
+		// console.log(tabletop);
 
 		var locationData = tabletop.sheets('Resources').all();
 		var onlineData = tabletop.sheets('OnlineResources').all();
@@ -53,9 +53,8 @@ $(function() {
 			$('#category-list-online').append(html);
 		});
 
-
 		// Add unique locations as buttons.
-		var locations = _.chain(locationData).map(function(val) { return val.Location.trim()}).uniq().filter(function(val){ return val != "Online" }).value().sort();
+		var locations = _.chain(locationData).map(function(val) { return val.Location.trim()}).uniq().filter(function(val){ return (val != "Online" && val != undefined && val != "") }).value().sort();
 		locations.unshift("Everywhere");
 		_(locations).each(function(location) {
 			var html = "<span class='location-label " + parameterize('location', location) + "'>" + location + "</span>";
@@ -64,7 +63,7 @@ $(function() {
 
 		// Get address lat/lngs
 		$.getJSON("https://hcan-public-us-west.s3.amazonaws.com/covid_resource_locations.json", function(data) {
-			console.log(data);
+			// console.log(data);
 			_(data).each(function(location) {
 				var icon =  L.divIcon({
 					className: 'marker-icon',
@@ -79,7 +78,7 @@ $(function() {
 					marker: marker
 				}
 			});
-			console.log(markers);
+			// console.log(markers);
 
 
 			// Render rows
@@ -111,7 +110,9 @@ $(function() {
 			var hasLocation = false;
 			var addressID;
 
-			// console.log(row);
+			if (row.Name == undefined || row.Name == "") {
+				return;
+			}
 
 			if (usingLocation) {
 				addressID = [row.Street, row.City, row.ZIP].join('').toLowerCase().replace(/[^a-z0-9_]/g, "");
@@ -221,7 +222,7 @@ $(function() {
 			}
 		}
 
-		console.log(selectedClasses);
+		// console.log(selectedClasses);
 
 		if (selectedClasses != "") {
 			// Perform filtering
@@ -242,7 +243,7 @@ $(function() {
 
 		// Update markers
 		var selectedMarkers = _(markers).where(markerFilters);
-		console.log(markers, markerFilters, selectedMarkers);
+		// console.log(markers, markerFilters, selectedMarkers);
 		if (selectedMarkers != undefined && selectedMarkers.length > 0) {
 			var bounds = _(selectedMarkers).map(function(m) { return m.marker.getLatLng() });
 			map.flyToBounds(bounds, {duration: 0.75});

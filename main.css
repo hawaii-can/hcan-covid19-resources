@@ -193,6 +193,7 @@ h2 {
 
 #list-wrap {
 	padding: 20px;
+	padding-bottom: 50px;
 }
 
 @media(min-width: 700px) {
