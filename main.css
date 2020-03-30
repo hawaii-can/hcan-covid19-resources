@@ -244,7 +244,7 @@ h2 {
 	width: 100%;
 }
 
-#embed-close {
+.close {
 	font-size: 0.8em;
 	line-height: 1em;
 	border: 1px solid #ccc;
@@ -257,7 +257,76 @@ h2 {
 	float: right;
 }
 
-#embed-close:hover {
+.close:hover {
 	background-color: #ccc;
 	cursor: pointer;
+}
+
+.close-white {
+	border-color: #fff;
+	color: #fff;
+}
+
+.close-white:hover {
+	background-color: #fff;
+	color: #333;
+}
+
+#updates-signup-wrap, #updates-signup-success-wrap {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	padding: 15px;
+	z-index: 100000000;
+	box-shadow: 0 0px 10px rgba(0,0,0,0.5);
+	background: #fff;
+	text-align: center;
+}
+
+#updates-signup-success-wrap {
+	background: #eb8f22;
+}
+
+#updates-signup-success {
+	width: 95%;
+	max-width: 600px;
+	margin: 0 auto;
+	color: #fff;
+}
+
+.input-group {
+	display: block;
+	margin: 5px 0;
+}
+
+@media(min-width: 700px) {
+	.input-group {
+		display: inline-block;
+		margin: 0;
+	}
+}
+
+#updates-signup-wrap {
+	line-height: 1em;
+}
+
+#updates-signup-wrap input {
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	margin-left: 5px;
+	margin-right: 10px;
+	margin-bottom: 5px;
+	padding: 5px;
+}
+
+#updates-signup-wrap input[type=submit] {
+	background: #eb8f22;
+	border-color: rgba(0,0,0,0.25);
+	color: #fff;
+}
+
+#updates-signup-wrap input[type=submit]:hover {
+	cursor: pointer;
+	background: #CB7D1D;
 }

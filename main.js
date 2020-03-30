@@ -341,10 +341,22 @@ $(function() {
 		return false;
 	});
 
-	$('#embed-close').click(function(){
-		$('#embed-wrap').fadeOut(250);
+	$('.close').click(function(){
+		var $closable = $(this).parents('.closable');
+		$closable.fadeOut(250);
 	});
 
+	$('#updates-signup-hide').click(function() {
+		Cookies.set('hideSignup', 'true', {expires: 14})
+	});
+
+	if ( Cookies.get('hideSignup') == undefined ) {
+		$('#updates-signup-wrap').show();
+	}
+
+	if (location.hash == "#success") {
+		$('#updates-signup-success-wrap').show();
+	}
 
 
 	$(window).resize(calculateLayout);
