@@ -357,7 +357,7 @@ $(function() {
 
 	if (location.hash == "#success") {
 		$('#updates-signup-success-wrap').show();
-		Cookies.set('hideSignup', 'true', {expires: 14})
+		Cookies.set('hideSignup', 'true')
 	}
 
 
