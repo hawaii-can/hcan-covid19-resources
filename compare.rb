@@ -33,16 +33,30 @@ def run
 
 	if new_or_changed.any?
 
-		recipients = get_nb_tagged
+		if !ARGV[0].nil?
+			recipients = [ {email: ARGV[0], first_name: "Test"} ]
+			puts "Test: Overriding recipients: #{recipients}"
+		else
+			recipients = get_nb_tagged
+			puts "Recipients: #{recipients}"
+		end
+
 		recipients.each do |recipient|
 			puts recipient
 			email_content = email(new_or_changed, recipient[:first_name])
 			send_email(email_content, recipient[:email])
 		end
 
-		save_json(s3_locations_data_object, new_locations)
-		save_json(s3_online_data_object, new_online)
+		if !ARGV[0].nil?
+			puts "Not updating JSON"
+		else
+			puts "Updating JSON"
+			save_json(s3_locations_data_object, new_locations)
+			save_json(s3_online_data_object, new_online)
+		end
 
+	else
+		puts "No changes"
 	end
 
 end
@@ -108,6 +122,7 @@ end
 
 def save_json(s3_object, data)
 	s3_object.put(body: data.to_json)
+	puts "Saved JSON"
 end
 
 def get_object(s3_object)
