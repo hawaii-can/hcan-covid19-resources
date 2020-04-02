@@ -105,7 +105,9 @@ def compare(new_entries, old_entries, resource_type)
 			# Exists, check changes
 			changed = []
 			KEYS.each do |key|
-				changed << v[key] != old_entries[k][key]
+				if v[key] != old_entries[k][key]
+					changed << true
+				end
 			end
 			if changed.any?(true)
 				changed = v
