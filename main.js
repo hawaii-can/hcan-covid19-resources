@@ -36,16 +36,24 @@ $(function() {
 		// console.log(tabletop);
 
 		var locationData = tabletop.sheets('Resources').all();
+		var foodData = tabletop.sheets('FoodResources').all();
 		var onlineData = tabletop.sheets('OnlineResources').all();
 
 		// Add unique categories as buttons.
-		var categories = _.chain(locationData).map(function(val) { return val.Category.trim()}).uniq().value().sort();
+
+		// --- Aggregate main and food spreadsheets.
+		var onlyLocationCategories = _(locationData).map(function(val) { return val.Category.trim()});
+		var onlyFoodCategories = _(foodData).map(function(val) { return val.Category.trim()});
+		var combinedCategories = onlyLocationCategories.concat(onlyFoodCategories);
+		var categories = _(combinedCategories).uniq().sort();
+
 		categories.unshift("Everything");
 		_(categories).each(function(category) {
 			var html = "<span class='category-label " + parameterize('category', category) + "'>" + category + "</span>";
 			$('#category-list-in-person').append(html);
 		});
 
+		// --- Online categories.
 		var onlineCategories = _.chain(onlineData).map(function(val) { return val.Category.trim()}).uniq().value().sort();
 		onlineCategories.unshift("Everything");
 		_(onlineCategories).each(function(category) {
@@ -54,7 +62,11 @@ $(function() {
 		});
 
 		// Add unique locations as buttons.
-		var locations = _.chain(locationData).map(function(val) { return val.Location.trim()}).uniq().filter(function(val){ return (val != "Online" && val != undefined && val != "") }).value().sort();
+
+		var onlyLocations = _(locationData).map(function(val) { return val.Location.trim()});
+		var onlyFoodLocations = _(foodData).map(function(val) { return val.Location.trim()});
+		var combinedLocations = onlyLocations.concat(onlyFoodLocations);
+		var locations = _.chain(combinedLocations).uniq().filter(function(val){ return (val != "Online" && val != undefined && val != "") }).value().sort();
 		locations.unshift("Everywhere");
 		_(locations).each(function(location) {
 			var html = "<span class='location-label " + parameterize('location', location) + "'>" + location + "</span>";
@@ -65,17 +77,20 @@ $(function() {
 		$.getJSON("https://hcan-public-us-west.s3.amazonaws.com/covid_resource_locations.json", function(data) {
 			// console.log(data);
 			_(data).each(function(location) {
-				var icon =  L.divIcon({
-					className: 'marker-icon',
-					html: '<i class="fas fa-map-pin fa-3x"></i>',
-					iconSize: [20,36],
-					iconAnchor: [10,36]
-				});
-				var marker = L.marker([location.lat, location.lng],{
-					icon: icon
-				});
-				markers[location.address_id] = {
-					marker: marker
+				if (location != null) {
+					var icon =  L.divIcon({
+						className: 'marker-icon',
+						html: '<i class="fas fa-map-pin fa-3x"></i>',
+						iconSize: [20,36],
+						iconAnchor: [10,36]
+					});
+
+					var marker = L.marker([location.lat, location.lng],{
+						icon: icon
+					});
+					markers[location.address_id] = {
+						marker: marker
+					}					
 				}
 			});
 			// console.log(markers);
@@ -83,6 +98,7 @@ $(function() {
 
 			// Render rows
 			renderRows(locationData, "in-person", true, "#list .only-in-person");
+			renderRows(foodData, "in-person-food", true, "#list .only-in-person");
 			renderRows(onlineData, "online", false, "#list .only-online");
 
 			updateFilter();
