@@ -15,9 +15,11 @@ def run
 	s3 = Aws::S3::Resource.new(region: ENV['S3_REGION'])
 	location_csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm_HYq0rmBPR_Qc-M6F9IIJYTjv1aa4n-NRIodaVb4Jq64QVNeA89IPh80P_zbqQEDhcUB0Ab_Ju2Q/pub?gid=0&single=true&output=csv"
 	online_csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm_HYq0rmBPR_Qc-M6F9IIJYTjv1aa4n-NRIodaVb4Jq64QVNeA89IPh80P_zbqQEDhcUB0Ab_Ju2Q/pub?gid=1922664152&single=true&output=csv"
+	food_csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vThJeclOOrsVQ9_gRu6UOSn2RqF94xoYKQpZMSWAUIUuhOt-_vQWxlQqI2UQM-3_3afwjZuINFJmBS8/pub?output=csv"
 
 	s3_locations_data_object = s3.bucket(ENV['S3_BUCKET']).object("covid_resource_locations_data.json")
 	s3_online_data_object = s3.bucket(ENV['S3_BUCKET']).object("covid_resource_online_data.json")
+	s3_food_data_object = s3.bucket(ENV['S3_BUCKET']).object("covid_resource_food_data.json")
 
 	new_or_changed = []
 
@@ -28,6 +30,10 @@ def run
 	new_online = parse(online_csv_url)
 	old_online = get_object(s3_online_data_object)
 	new_or_changed << compare(new_online, old_online, 'Online')
+
+	new_food = parse(food_csv_url)
+	old_food = get_object(s3_food_data_object)
+	new_or_changed << compare(new_food, old_food, 'Food')
 
 	new_or_changed.flatten!
 
@@ -53,6 +59,7 @@ def run
 			puts "Updating JSON"
 			save_json(s3_locations_data_object, new_locations)
 			save_json(s3_online_data_object, new_online)
+			save_json(s3_food_data_object, new_food)
 		end
 
 	else
