@@ -164,11 +164,13 @@ def get_nb_tagged
 
 		tags_list = JSON.parse(tags_response.body, symbolize_names: true)
 		tags_list[:results].each do |entity|
-			member = {
-				first_name: entity[:first_name],
-				email: entity[:email]
-			}
-			members << member
+			if entity[:email_opt_in]
+				member = {
+					first_name: entity[:first_name],
+					email: entity[:email]
+				}
+				members << member
+			end
 		end
 
 		tag_url = "#{base_url}#{tags_list[:next]}&access_token=#{ENV['NB_TOKEN']}"
