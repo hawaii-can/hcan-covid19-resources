@@ -308,6 +308,14 @@ $(function() {
 		windowWidth = $(window).width();
 	}, 300);
 
+	var captureOutboundLink = function(url) {
+	  gtag('event', 'click', {
+	    'event_category': 'outbound',
+	    'event_label': url,
+	    'transport_type': 'beacon'
+	  });
+	}
+
 	$('#list-wrap').on('click', '.category-label, .location-label, .type-label', function() {
 		var $this = $(this);
 		var clear = false;
@@ -375,6 +383,14 @@ $(function() {
 		$('#updates-signup-success-wrap').show();
 		Cookies.set('hideSignup', 'true')
 	}
+
+	$('body').on('click', 'a', function(e) {
+		try { 
+			captureOutboundLink( $(this).attr('href') );
+		} catch {
+			console.log( $(this).attr('href') );
+		}
+	});
 
 
 	$(window).resize(calculateLayout);
