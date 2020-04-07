@@ -19,8 +19,7 @@ h2 {
 }
 
 #top-links {
-	margin-top: 10px;
-	margin-bottom: 25px;
+	margin: 10px 0;
 }
 
 #top-links a:link, #top-links a:visited {
@@ -37,6 +36,21 @@ h2 {
 
 #top-links a:hover {
 	background-color: #ccc;
+}
+
+#contributors {
+	font-size: 0.85em;
+	line-height: 1.2em;
+	margin-bottom: 25px;
+	color: #666;
+}
+
+#contributors a:link, #contributors a:visited {
+	color: #666;
+}
+
+#contributors a:hover {
+	color: #333;
 }
 
 .category-lists {
