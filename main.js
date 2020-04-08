@@ -10,6 +10,9 @@ $(function() {
 		defaultZoom = 7;
 	}
 
+	var otherLanguages;
+	var otherLanguageTerms;
+
 	Tabletop.init({
 		key: '1TpA6W7dMdj-IfflZZVdhgwZ_0UvvARd-3WCq8xXTt2E',
 		callback: init
@@ -304,6 +307,25 @@ $(function() {
 		$('#map-reset').fadeIn(250);
 	}
 
+	function getLanguage(languageCode) {
+		console.log(otherLanguages);
+		console.log(otherLanguageTerms);
+
+		if (otherLanguages == undefined) {
+			Tabletop.init({
+				key: '1SAgHX0KK7Cd5enyX6HtbFEXvgKGKfn3bOQ0wRgteIPg',
+				callback: function(data, tabletop) {
+					otherLanguages = tabletop;
+
+					var terms = otherLanguages.sheets("Terms").all();
+					otherLanguageTerms = _.chain(terms).map(function(obj){ return [obj["en"],obj] }).object().value();
+
+					getLanguage(languageCode);
+				}
+			});			
+		}
+	}
+
 	var calculateLayout = _.debounce(function(){
 		windowWidth = $(window).width();
 	}, 300);
@@ -394,5 +416,7 @@ $(function() {
 
 
 	$(window).resize(calculateLayout);
+
+	getLanguage("tl");
 
 });
