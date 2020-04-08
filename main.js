@@ -12,6 +12,10 @@ $(function() {
 
 	var otherLanguages;
 	var otherLanguageTerms;
+	var loadEnglish;
+
+	var successRe = /^\#success/;
+	var langRe = /lang-([a-zA-Z-]+)$/;
 
 	Tabletop.init({
 		key: '1TpA6W7dMdj-IfflZZVdhgwZ_0UvvARd-3WCq8xXTt2E',
@@ -82,21 +86,34 @@ $(function() {
 			});
 			// console.log(markers);
 
+			loadEnglish = function() {
+				// Render rows
+				renderRows(locationData, "in-person", true, "#list .only-in-person");
+				renderRows(foodData, "in-person-food", true, "#list .only-in-person");
+				renderRows(onlineData, "online", false, "#list .only-online");
 
-			// Render rows
-			renderRows(locationData, "in-person", true, "#list .only-in-person");
-			renderRows(foodData, "in-person-food", true, "#list .only-in-person");
-			renderRows(onlineData, "online", false, "#list .only-online");
+				// Assign colors
+				assignCategoryColors([categories, onlineCategories], "Everything");
 
-			updateFilter();
-			$('#loading').slideUp(200);
-			$('#list-inside').slideDown(200);
+				updateFilter(true);
+				$('#loading').slideUp(200);
+				$('#list-inside').slideDown(200);	
+			}
 
-			// Assign colors
-			assignCategoryColors([categories, onlineCategories], "Everything");
+			if (langRe.test(location.hash)) {
+				// Try other language
+				tryOtherLanguage = true;
+				lang = location.hash.match(langRe)[1];
+				getLanguage(lang, function(present) {
+					if (!present) {
+						loadEnglish();
+					}
+				});
+			} else {
+				loadEnglish();
+			}
 
-			// Get language
-			getLanguage("zh-CN");
+
 		});
 
 	}
@@ -180,7 +197,11 @@ $(function() {
 		categories.unshift(everythingText);
 
 		_(categories).each(function(category) {
-			var html = "<span class='category-label " + parameterize('category', category) + "'>" + category + "</span>";
+			var categoryClass = category;
+			if (categoryClass == everythingText) {
+				categoryClass = "Everything";
+			}
+			var html = "<span class='category-label " + parameterize('category', categoryClass) + "'>" + category + "</span>";
 			$(selector).append(html);
 		});
 
@@ -201,12 +222,19 @@ $(function() {
 	}
 
 	function createLocations(locationsData, everywhereText, multipleIslandsText) {
-		var locations = _.chain(locationsData).uniq().filter(function(val){ return (val != multipleIslandsText && val != "Online" && val != undefined && val != "") }).value().sort();
+		var locations = _.chain(locationsData).uniq().filter(function(val){ return (val != multipleIslandsText && val != "Multiple Islands" && val != "Online" && val != undefined && val != "") }).value().sort();
 		locations.unshift(everywhereText);
 		locations.push(multipleIslandsText);
 		_(locations).each(function(location) {
-			var html = "<span class='location-label " + parameterize('location', location) + "'>" + location + "</span>";
-			$('#location-list').append(html);
+			var locationClass = location;
+			if (locationClass == everywhereText) {
+				locationClass = "Everywhere";
+			} else if (locationClass == multipleIslandsText) {
+				locationClass = "Multiple Islands";
+			}
+
+			var html = "<span class='location-label " + parameterize('location', locationClass) + "'>" + location + "</span>";
+			$('#location-list-inside').append(html);
 		});
 		return locations;
 	}
@@ -329,10 +357,7 @@ $(function() {
 		$('#map-reset').fadeIn(250);
 	}
 
-	function getLanguage(languageCode) {
-		console.log(otherLanguages);
-		console.log(otherLanguageTerms);
-
+	function getLanguage(languageCode, outerCallback) {
 		if (otherLanguages == undefined) {
 			// First load
 			Tabletop.init({
@@ -343,7 +368,7 @@ $(function() {
 					var terms = otherLanguages.sheets("Terms").all();
 					otherLanguageTerms = _.chain(terms).map(function(obj){ return [obj["en"],obj] }).object().value();
 
-					getLanguage(languageCode);
+					getLanguage(languageCode, outerCallback);
 				}
 			});			
 		} else {
@@ -351,44 +376,6 @@ $(function() {
 			var langData = otherLanguages.sheets(languageCode);
 			if (langData != undefined) {
 				// Language exists
-
-				$('#list-inside').slideUp(200);
-				$('#loading').slideDown(200);
-
-				$('#list .only-in-person, #list .only-online, #category-list .only-in-person, #category-list .only-online').empty();
-
-				_(markers).each(function(value, key, list) {
-					map.removeLayer(value.marker);
-				});
-
-				var everythingText = "Everything";
-
-				var inPersonData = _(langData.all()).filter(function(val){
-					return val.Location != "";
-				});
-				var onlineData = _(langData.all()).filter(function(val){
-					return val.Location == "";
-				});
-
-				var inPersonCategoriesRaw = _(inPersonData).map(function(val) { return val.Category.trim()});
-				var inPersonCategories = createCategories(inPersonCategoriesRaw, everythingText, "#category-list-in-person");
-
-				var onlineCategoriesRaw = _(onlineData).map(function(val) { return val.Category.trim()});
-				var onlineCategories = createCategories(onlineCategoriesRaw, everythingText, "#category-list-online");
-
-				var rowTerms = {
-					phone: otherLanguageTerms["Phone"][languageCode],
-					address: otherLanguageTerms["Address"][languageCode],
-					visitWebsite: otherLanguageTerms["Visit website"][languageCode]
-				};
-
-				renderRows(inPersonData, "in-person", true, "#list .only-in-person", rowTerms);
-				renderRows(onlineData, "online", false, "#list .only-online", rowTerms);
-
-				$('#list-inside').slideDown(200);
-				$('#loading').slideUp(200);
-
-				assignCategoryColors([inPersonCategories, onlineCategories], everythingText);
 
 				// Translate site terms
 				$('.translatable').each(function(){
@@ -401,6 +388,55 @@ $(function() {
 						}
 					}
 				});
+
+				$('#list-inside').slideUp(200);
+				$('#loading').slideDown(200);
+
+				_.defer(function(){
+					// Render data
+
+					$('#list .only-in-person, #list .only-online, #category-list .only-in-person, #category-list .only-online, #location-list-inside').empty();
+
+					_(markers).each(function(value, key, list) {
+						map.removeLayer(value.marker);
+					});
+
+					var everythingText = otherLanguageTerms["Everything"][languageCode];
+
+					var inPersonData = _(langData.all()).filter(function(val){
+						return val.Location != "";
+					});
+					var onlineData = _(langData.all()).filter(function(val){
+						return val.Location == "";
+					});
+
+					var inPersonCategoriesRaw = _(inPersonData).map(function(val) { return val.Category.trim()});
+					var inPersonCategories = createCategories(inPersonCategoriesRaw, everythingText, "#category-list-in-person");
+
+					var onlineCategoriesRaw = _(onlineData).map(function(val) { return val.Category.trim()});
+					var onlineCategories = createCategories(onlineCategoriesRaw, everythingText, "#category-list-online");
+
+					var locationsRaw = _(inPersonData).map(function(val) { return val.Location.trim()});
+					var locations = createLocations(locationsRaw, otherLanguageTerms["Everywhere"][languageCode], otherLanguageTerms["Multiple Islands"][languageCode]);
+
+					var rowTerms = {
+						phone: otherLanguageTerms["Phone"][languageCode],
+						address: otherLanguageTerms["Address"][languageCode],
+						visitWebsite: otherLanguageTerms["Visit website"][languageCode]
+					};
+
+					renderRows(inPersonData, "in-person", true, "#list .only-in-person", rowTerms);
+					renderRows(onlineData, "online", false, "#list .only-online", rowTerms);
+					assignCategoryColors([inPersonCategories, onlineCategories], everythingText);
+
+					updateFilter();
+
+					$('#list-inside').slideDown(200);
+					$('#loading').slideUp(200);
+					outerCallback(true);
+				})
+			} else {
+				outerCallback(false);
 			}
 		}
 	
@@ -424,7 +460,7 @@ $(function() {
 		if ($this.hasClass('category-label')) {
 			// Category
 			selectedCategory = parameterize('category', $(this).text());
-			if (selectedCategory == currentCategory) {
+			if (selectedCategory == currentCategory || $this.hasClass('category-everything')) {
 				currentCategory = "category-everything";
 			} else {
 				currentCategory = selectedCategory;
@@ -432,8 +468,10 @@ $(function() {
 		} else if ($this.hasClass('location-label')) {
 			// Location
 			selectedLocation = parameterize('location', $(this).text());
-			if (selectedLocation == currentLocation) {
+			if (selectedLocation == currentLocation || $this.hasClass('location-everywhere')) {
 				currentLocation = "location-everywhere";
+			} else if ( $this.hasClass(parameterize('location', 'multiple islands')) ) {
+				currentLocation = parameterize('location', 'multiple islands');
 			} else {
 				currentLocation = selectedLocation;
 			}
@@ -484,9 +522,9 @@ $(function() {
 		$('#updates-signup-wrap').show();
 	}
 
-	if (location.hash == "#success") {
+	if (successRe.test(location.hash)) {
 		$('#updates-signup-success-wrap').show();
-		Cookies.set('hideSignup', 'true')
+		Cookies.set('hideSignup', 'true');
 	}
 
 	$('body').on('click', 'a', function(e) {
