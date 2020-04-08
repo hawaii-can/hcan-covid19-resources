@@ -66,8 +66,9 @@ $(function() {
 		var onlyLocations = _(locationData).map(function(val) { return val.Location.trim()});
 		var onlyFoodLocations = _(foodData).map(function(val) { return val.Location.trim()});
 		var combinedLocations = onlyLocations.concat(onlyFoodLocations);
-		var locations = _.chain(combinedLocations).uniq().filter(function(val){ return (val != "Online" && val != undefined && val != "") }).value().sort();
+		var locations = _.chain(combinedLocations).uniq().filter(function(val){ return (val != "Multiple Islands" && val != "Online" && val != undefined && val != "") }).value().sort();
 		locations.unshift("Everywhere");
+		locations.push("Multiple Islands");
 		_(locations).each(function(location) {
 			var html = "<span class='location-label " + parameterize('location', location) + "'>" + location + "</span>";
 			$('#location-list').append(html);
