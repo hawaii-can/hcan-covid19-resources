@@ -48,34 +48,17 @@ $(function() {
 		var onlyLocationCategories = _(locationData).map(function(val) { return val.Category.trim()});
 		var onlyFoodCategories = _(foodData).map(function(val) { return val.Category.trim()});
 		var combinedCategories = onlyLocationCategories.concat(onlyFoodCategories);
-		var categories = _(combinedCategories).uniq().sort();
-
-		categories.unshift("Everything");
-		_(categories).each(function(category) {
-			var html = "<span class='category-label " + parameterize('category', category) + "'>" + category + "</span>";
-			$('#category-list-in-person').append(html);
-		});
+		var categories = createCategories(combinedCategories, "Everything", "#category-list-in-person");
 
 		// --- Online categories.
-		var onlineCategories = _.chain(onlineData).map(function(val) { return val.Category.trim()}).uniq().value().sort();
-		onlineCategories.unshift("Everything");
-		_(onlineCategories).each(function(category) {
-			var html = "<span class='category-label " + parameterize('category', category) + "'>" + category + "</span>";
-			$('#category-list-online').append(html);
-		});
+		var onlineCategoriesRaw = _(onlineData).map(function(val) { return val.Category.trim()});
+		var onlineCategories = createCategories(onlineCategoriesRaw, "Everything", "#category-list-online");
 
 		// Add unique locations as buttons.
-
 		var onlyLocations = _(locationData).map(function(val) { return val.Location.trim()});
 		var onlyFoodLocations = _(foodData).map(function(val) { return val.Location.trim()});
 		var combinedLocations = onlyLocations.concat(onlyFoodLocations);
-		var locations = _.chain(combinedLocations).uniq().filter(function(val){ return (val != "Multiple Islands" && val != "Online" && val != undefined && val != "") }).value().sort();
-		locations.unshift("Everywhere");
-		locations.push("Multiple Islands");
-		_(locations).each(function(location) {
-			var html = "<span class='location-label " + parameterize('location', location) + "'>" + location + "</span>";
-			$('#location-list').append(html);
-		});
+		var locations = createLocations(combinedLocations, "Everywhere", "Multiple Islands");
 
 		// Get address lat/lngs
 		$.getJSON("https://hcan-public-us-west.s3.amazonaws.com/covid_resource_locations.json", function(data) {
@@ -110,21 +93,22 @@ $(function() {
 			$('#list-inside').slideDown(200);
 
 			// Assign colors
-			var allCategories = _.chain([categories, onlineCategories]).flatten().uniq().filter(function(val){ return val != "Everything" }).value().sort();
-			_(allCategories).each(function(category, index) {
-				var val = (1.0 / allCategories.length) * index;
-				var color = d3.interpolateViridis(val);
-				$('span.'+parameterize('category', category)).css({
-					'background-color': color,
-					'color': '#fff'
-				});
-				$('.leaflet-marker-icon.'+parameterize('category', category)).css('color', color);
-			});
+			assignCategoryColors([categories, onlineCategories], "Everything");
+
+			// Get language
+			getLanguage("zh-CN");
 		});
 
 	}
 
-	function renderRows(data, prefix, usingLocation, appendEl) {
+	function renderRows(data, prefix, usingLocation, appendEl, terms) {
+		if (terms == undefined) {
+			terms = {
+				phone: "Phone",
+				address: "Address",
+				visitWebsite: "Visit Website"
+			}
+		}
 		_(data).each(function(row, index) {
 			var rowID = "row" + prefix + index;
 			var hasLocation = false;
@@ -177,23 +161,60 @@ $(function() {
 			html += "<div class='row-description'>"
 			html += "<p>" + row.Description + "</p>";
 			if (row.Phone != "") {
-				html += "<p><span class='label'>Phone</span> " + row.Phone + "</span>";
+				html += "<p><span class='label'>" + terms.phone + "</span> " + row.Phone + "</span>";
 			}
 			if (usingLocation && (row.Street != "" || row.City != "" || row.ZIP != "")) {
 				var address = _([row.Street, row.City, "HI", row.ZIP]).filter(function(val) { return val != "" }).join(", ");
-				html += "<p><span class='label'>Address</span> " + address + "</span>";
+				html += "<p><span class='label'>" + terms.address + "</span> " + address + "</span>";
 			}
 			if (row.URL != "") {
-				html += "<p><a class='website-btn' href='" + row.URL + "' target='_blank'><i class='fas fa-external-link-square-alt'></i> Visit website</a></p>";
+				html += "<p><a class='website-btn' href='" + row.URL + "' target='_blank'><i class='fas fa-external-link-square-alt'></i> " + terms.visitWebsite + "</a></p>";
 			}
 			html += "</div></div>";
 			$(appendEl).append(html);
 		});
 	}
 
+	function createCategories(categoriesData, everythingText, selector) {
+		var categories = _(categoriesData).uniq().sort();
+		categories.unshift(everythingText);
+
+		_(categories).each(function(category) {
+			var html = "<span class='category-label " + parameterize('category', category) + "'>" + category + "</span>";
+			$(selector).append(html);
+		});
+
+		return categories;
+	}
+
+	function assignCategoryColors(categoriesArr,everythingText) {
+		var allCategories = _.chain(categoriesArr).flatten().uniq().filter(function(val){ return val != everythingText }).value().sort();
+		_(allCategories).each(function(category, index) {
+			var val = (1.0 / allCategories.length) * index;
+			var color = d3.interpolateViridis(val);
+			$('span.'+parameterize('category', category)).css({
+				'background-color': color,
+				'color': '#fff'
+			});
+			$('.leaflet-marker-icon.'+parameterize('category', category)).css('color', color);
+		});
+	}
+
+	function createLocations(locationsData, everywhereText, multipleIslandsText) {
+		var locations = _.chain(locationsData).uniq().filter(function(val){ return (val != multipleIslandsText && val != "Online" && val != undefined && val != "") }).value().sort();
+		locations.unshift(everywhereText);
+		locations.push(multipleIslandsText);
+		_(locations).each(function(location) {
+			var html = "<span class='location-label " + parameterize('location', location) + "'>" + location + "</span>";
+			$('#location-list').append(html);
+		});
+		return locations;
+	}
+
 	function parameterize(prefix, string) {
 		if (string != undefined) {
-			var str = string.trim().toLowerCase().replace(/[^a-z0-9- ]/g, "").replace(/\s/g, "-");
+			var encoded = encodeURIComponent(string);
+			var str = encoded.trim().toLowerCase().replace(/[^a-z0-9- ]/g, "").replace(/\s/g, "-");
 			return prefix + "-" + str;	
 		}
 		return "";
@@ -313,6 +334,7 @@ $(function() {
 		console.log(otherLanguageTerms);
 
 		if (otherLanguages == undefined) {
+			// First load
 			Tabletop.init({
 				key: '1SAgHX0KK7Cd5enyX6HtbFEXvgKGKfn3bOQ0wRgteIPg',
 				callback: function(data, tabletop) {
@@ -324,7 +346,64 @@ $(function() {
 					getLanguage(languageCode);
 				}
 			});			
+		} else {
+			// Already loaded
+			var langData = otherLanguages.sheets(languageCode);
+			if (langData != undefined) {
+				// Language exists
+
+				$('#list-inside').slideUp(200);
+				$('#loading').slideDown(200);
+
+				$('#list .only-in-person, #list .only-online, #category-list .only-in-person, #category-list .only-online').empty();
+
+				_(markers).each(function(value, key, list) {
+					map.removeLayer(value.marker);
+				});
+
+				var everythingText = "Everything";
+
+				var inPersonData = _(langData.all()).filter(function(val){
+					return val.Location != "";
+				});
+				var onlineData = _(langData.all()).filter(function(val){
+					return val.Location == "";
+				});
+
+				var inPersonCategoriesRaw = _(inPersonData).map(function(val) { return val.Category.trim()});
+				var inPersonCategories = createCategories(inPersonCategoriesRaw, everythingText, "#category-list-in-person");
+
+				var onlineCategoriesRaw = _(onlineData).map(function(val) { return val.Category.trim()});
+				var onlineCategories = createCategories(onlineCategoriesRaw, everythingText, "#category-list-online");
+
+				var rowTerms = {
+					phone: otherLanguageTerms["Phone"][languageCode],
+					address: otherLanguageTerms["Address"][languageCode],
+					visitWebsite: otherLanguageTerms["Visit website"][languageCode]
+				};
+
+				renderRows(inPersonData, "in-person", true, "#list .only-in-person", rowTerms);
+				renderRows(onlineData, "online", false, "#list .only-online", rowTerms);
+
+				$('#list-inside').slideDown(200);
+				$('#loading').slideUp(200);
+
+				assignCategoryColors([inPersonCategories, onlineCategories], everythingText);
+
+				// Translate site terms
+				$('.translatable').each(function(){
+					var text = $(this).text();
+					if ( otherLanguageTerms[text] != undefined ) {
+						var translated = otherLanguageTerms[text][languageCode];
+						if ( translated != undefined ) {
+							$(this).data('original', text);
+							$(this).text(translated);
+						}
+					}
+				});
+			}
 		}
+	
 	}
 
 	var calculateLayout = _.debounce(function(){
@@ -360,8 +439,11 @@ $(function() {
 			}
 		} else if ($this.hasClass('type-label')) {
 			// Type
-			selectedType = parameterize('type', $(this).text());
-			currentType = selectedType;
+			if ($(this).hasClass('type-in-person')) {
+				currentType = 'type-in-person';
+			} else {
+				currentType = 'type-online';
+			}
 			clear = true;
 		}
 		updateFilter(clear);
@@ -417,7 +499,5 @@ $(function() {
 
 
 	$(window).resize(calculateLayout);
-
-	getLanguage("tl");
 
 });
