@@ -9,7 +9,7 @@ require 'sendgrid-ruby'
 require 'base64'
 include SendGrid
 
-KEYS = [:description, :url, :phone, :street, :city, :zip]
+KEYS = [:description, :url, :phone, :street, :city, :zip, :category]
 
 def run
 	s3 = Aws::S3::Resource.new(region: ENV['S3_REGION'])
@@ -208,7 +208,7 @@ def email(new_or_changed, recipient_name="friend")
 			<p style="font-size:18px;line-height:18px;text-decoration:underline;font-weight:bold;">New entries</p>
 			<% @new_entries.each do |entry| %>
 				<p>
-					<strong><%= entry[:name].to_s %></strong>
+					<%= entry[:category].to_s %>: <strong><%= entry[:name].to_s %></strong>
 					<%= "<br/>#{entry[:description]}" if (!entry[:description].nil? && entry[:description] != "") %>
 					<%= "<br/>Website: #{ entry[:url] }" if (!entry[:url].nil? && entry[:url] != "") %>
 					<%= "<br/>Phone: #{ entry[:phone] }" if (!entry[:phone].nil? && entry[:phone] != "") %>
@@ -220,7 +220,7 @@ def email(new_or_changed, recipient_name="friend")
 			<p style="font-size:18px;line-height:18px;text-decoration:underline;font-weight:bold;">Updated entries</p>
 			<% @changed_entries.each do |entry| %>
 				<p>
-					<strong><%= entry[:name].to_s %></strong>
+					<%= entry[:category].to_s %>: <strong><%= entry[:name].to_s %></strong>
 					<%= "<br/>#{entry[:description]}" if (!entry[:description].nil? && entry[:description] != "") %>
 					<%= "<br/>Website: #{ entry[:url] }" if (!entry[:url].nil? && entry[:url] != "") %>
 					<%= "<br/>Phone: #{ entry[:phone] }" if (!entry[:phone].nil? && entry[:phone] != "") %>
