@@ -37,7 +37,6 @@ $(function() {
 	    accessToken: 'pk.eyJ1IjoicmNhdGFsYW5pLWhjYW4iLCJhIjoiY2s4NzJvM3piMGN0aDNsbmh3bGJ6bWJyNCJ9.RUI7xHjaMpxI4v-U0qKFBw'
 	}).addTo(map);
 
-
 	function init(data, tabletop) {
 		// console.log(data);
 		// console.log(tabletop);
@@ -86,7 +85,23 @@ $(function() {
 			});
 			// console.log(markers);
 
-			loadEnglish = function() {
+			loadEnglish = function(needsReset) {
+				if (needsReset) {
+					$('#list .only-in-person, #list .only-online, #category-list .only-in-person, #category-list .only-online, #location-list-inside').empty();
+
+					_(markers).each(function(value, key, list) {
+						map.removeLayer(value.marker);
+					});
+
+					$('.translatable').each(function(){
+						var text = $(this).data('original');
+						$(this).text(text);
+					});
+
+					categories = createCategories(combinedCategories, "Everything", "#category-list-in-person");
+					onlineCategories = createCategories(onlineCategoriesRaw, "Everything", "#category-list-online");
+					locations = createLocations(combinedLocations, "Everywhere", "Multiple Islands");
+				}
 				// Render rows
 				renderRows(locationData, "in-person", true, "#list .only-in-person");
 				renderRows(foodData, "in-person-food", true, "#list .only-in-person");
@@ -98,6 +113,9 @@ $(function() {
 				updateFilter(true);
 				$('#loading').slideUp(200);
 				$('#list-inside').slideDown(200);	
+
+				$("#lang-en").addClass('lang-active');
+				updateLanguageSwitcher('en', false);
 			}
 
 			if (langRe.test(location.hash)) {
@@ -190,6 +208,36 @@ $(function() {
 			html += "</div></div>";
 			$(appendEl).append(html);
 		});
+	}
+
+	function updateLanguageSwitcher(langCode, open) {
+
+		var $wrap = $('#languages-wrap');
+		$wrap.show();
+
+		if (langCode != null) {
+			var $el = $('#lang-' + langCode);
+			if (!$el.hasClass('lang-active')) {
+				$('.lang-option').each(function() {
+					$(this).removeClass('lang-active');
+				});
+				$el.addClass('lang-active');
+				getLanguage(langCode, function(present) {
+					if (!present) {
+						loadEnglish(true);
+					}
+				});
+			}
+		}
+
+		if (open) {
+			$wrap.children().show();
+			$wrap.removeClass('closed').addClass('open');
+		} else {
+			$wrap.children().hide();
+			$('#languages-wrap .lang-active').show();
+			$wrap.removeClass('open').addClass('closed');
+		}
 	}
 
 	function createCategories(categoriesData, everythingText, selector) {
@@ -358,6 +406,9 @@ $(function() {
 	}
 
 	function getLanguage(languageCode, outerCallback) {
+		$('#list-inside').slideUp(200);
+		$('#loading').slideDown(200);
+
 		if (otherLanguages == undefined) {
 			// First load
 			Tabletop.init({
@@ -380,6 +431,9 @@ $(function() {
 				// Translate site terms
 				$('.translatable').each(function(){
 					var text = $(this).text();
+					if ( $(this).data('original') ) {
+						text = $(this).data('original');
+					}
 					if ( otherLanguageTerms[text] != undefined ) {
 						var translated = otherLanguageTerms[text][languageCode];
 						if ( translated != undefined ) {
@@ -388,9 +442,6 @@ $(function() {
 						}
 					}
 				});
-
-				$('#list-inside').slideUp(200);
-				$('#loading').slideDown(200);
 
 				_.defer(function(){
 					// Render data
@@ -433,10 +484,20 @@ $(function() {
 
 					$('#list-inside').slideDown(200);
 					$('#loading').slideUp(200);
-					outerCallback(true);
+					updateLanguageSwitcher(languageCode, false);
+					location.hash = "#lang" + languageCode;
+					if (outerCallback != undefined) {
+						outerCallback(true);	
+					}
+					
 				})
 			} else {
-				outerCallback(false);
+				if (outerCallback != undefined) {
+					outerCallback(false);	
+				}
+
+				$('#list-inside').slideDown(200);
+				$('#loading').slideUp(200);
 			}
 		}
 	
@@ -535,6 +596,16 @@ $(function() {
 		}
 	});
 
+	$('.lang-option').click(function(){
+		var open = $('#languages-wrap').hasClass('open');
+		var langCode = $(this).attr('id').match(langRe)[1];
+
+		updateLanguageSwitcher(langCode, !open);
+	});
+
+	$('#lang-close').click(function() {
+		updateLanguageSwitcher(null, false);
+	})
 
 	$(window).resize(calculateLayout);
 

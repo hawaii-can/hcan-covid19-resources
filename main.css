@@ -180,7 +180,7 @@ h2 {
 	background: #222;
     border: 3px solid #fff;
     position: absolute;
-    top: 20px;
+    top: 40px;
     right: 20px;
     padding: 7px 14px;
     border-radius: 10px;
@@ -344,4 +344,44 @@ h2 {
 #updates-signup-wrap input[type=submit]:hover {
 	cursor: pointer;
 	background: #CB7D1D;
+}
+
+#languages-wrap {
+	position: fixed;
+	z-index: 100000000;	
+	right: 20px;
+	background: #fff;
+	max-width: 170px;
+	font-size: 0.8em;
+	line-height: 1em;
+}
+
+.lang-option, #languages-wrap a:link, #languages-wrap a:visited, #languages-wrap header, #languages-wrap footer {
+	padding: 5px;
+	border-bottom: 1px solid #ccc;
+	color: #000;
+	text-decoration: none;
+	display: block;
+}
+
+#languages-wrap header {
+	text-align: right;
+}
+
+#languages-wrap.open .lang-active {
+	background: #ccc;
+}
+
+.lang-active:hover {
+	cursor: default;
+}
+
+.lang-option:hover, #languages-wrap a:hover, #languages-wrap header:hover {
+	background: #eee;
+	cursor: pointer;
+}
+
+#languages-wrap footer {
+	font-style: italic;
+	color: #666;
 }

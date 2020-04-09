@@ -19,10 +19,33 @@
 	<meta name="description" content="View local resources to help with the COVID-19 crisis." />
 
 	<link rel="stylesheet" href="main.css">
+	<link rel="stylesheet" href="flag-icon.min.css">
 	<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i&display=swap&subset=latin-ext" rel="stylesheet">
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
 </head>
 <body>
+
+	<div id="languages-wrap" style="display:none;">
+		<header id="lang-close">
+			&times; <span class="translatable">Close</span>
+		</header>
+		<div class="lang-option" id="lang-en">
+			<span class="flag-icon flag-icon-us"></span> English	
+		</div>
+		<div class="lang-option" id="lang-tl">
+			<span class="flag-icon flag-icon-ph"></span> Wikang Filipino	
+		</div>
+		<div class="lang-option" id="lang-haw">
+			<span class="flag-icon flag-icon-hawaii"></span> ʻŌlelo Hawaiʻi
+		</div>
+		<div class="lang-option" id="lang-zh-CN">
+			<span class="flag-icon flag-icon-cn"></span> 简化字
+		</div>
+		<a href="https://docs.google.com/spreadsheets/d/1XePaKv7Ar59PG7z37QqzIb8WfynEx5BK5ZfK3VLXIJA/edit#gid=1512808134" target="_blank"><i class="fas fa-globe"></i> <span class="translatable">Other language resources</span></a>
+		<footer class="translatable">
+			Translations by Google Translate.
+		</footer>
+	</div>
 
 	<div id="embed-wrap" class="closable" style="display:none;">
 		<div id="embed-info">
@@ -67,7 +90,6 @@
 					<a href="https://www.hawaii-can.org/covid_19_resources_pdfs" target="_blank"><i class="fas fa-file-download"></i> PDFs</a>
 					<a href="mailto:info@hawaii-can.org" target="_blank"><i class="fa fa-envelope-square"></i> <span class="translatable">Contact</span></a>
 					<a href="http://hawaiicovid19.com/" target="_blank"><i class="fas fa-flag"></i> <span class="translatable">State website</span></a>
-					<a href="https://docs.google.com/spreadsheets/d/1XePaKv7Ar59PG7z37QqzIb8WfynEx5BK5ZfK3VLXIJA/edit#gid=1512808134" target="_blank"><i class="fas fa-globe"></i> Other languages</a>
 				</div>
 
 				<div id="contributors">
