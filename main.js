@@ -485,7 +485,7 @@ $(function() {
 					$('#list-inside').slideDown(200);
 					$('#loading').slideUp(200);
 					updateLanguageSwitcher(languageCode, false);
-					location.hash = "#lang" + languageCode;
+					location.hash = "#lang-" + languageCode;
 					if (outerCallback != undefined) {
 						outerCallback(true);	
 					}
@@ -495,7 +495,7 @@ $(function() {
 				if (outerCallback != undefined) {
 					outerCallback(false);	
 				}
-
+				location.hash = "";
 				$('#list-inside').slideDown(200);
 				$('#loading').slideUp(200);
 			}
