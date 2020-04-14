@@ -147,13 +147,16 @@ $(function() {
 			terms = {
 				phone: "Phone",
 				address: "Address",
-				visitWebsite: "Visit Website"
+				visitWebsite: "Visit website",
+				call: "Call",
+				getDirections: "Get directions"
 			}
 		}
 		_(data).each(function(row, index) {
 			var rowID = "row" + prefix + index;
 			var hasLocation = false;
 			var addressID;
+			var address;
 
 			if (row.Name == undefined || row.Name == "") {
 				return;
@@ -208,9 +211,22 @@ $(function() {
 				var address = _([row.Street, row.City, "HI", row.ZIP]).filter(function(val) { return val != "" }).join(", ");
 				html += "<p><span class='label'>" + terms.address + "</span> " + address + "</span>";
 			}
-			if (row.URL != "") {
-				html += "<p><a class='website-btn' href='" + row.URL + "' target='_blank'><i class='fas fa-external-link-square-alt'></i> " + terms.visitWebsite + "</a></p>";
+
+			if (row.URL != "" || (usingLocation && (row.Street != "" || row.City != "" || row.ZIP != "")) || row.Phone != "") {
+				html += "<p>";
+				if (row.URL != "") {
+					html += "<a class='action-btn' href='" + row.URL + "' target='_blank'><i class='fas fa-external-link-square-alt'></i> " + terms.visitWebsite + "</a>";
+				}
+				if (row.Phone != "") {
+					html += "<a class='action-btn' href='tel:+1" + row.Phone + "'><i class='fa fa-phone-alt'></i> " + terms.call + "</a>";
+				}
+				if (usingLocation && (row.Street != "" || row.City != "" || row.ZIP != "")) {
+					var googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(address);
+					html += "<a class='action-btn' href='" + googleMapsUrl + "' target='_blank'><i class='fa fa-map-marked'></i> " + terms.getDirections + "</a>";
+				}
+				html += "</p>";
 			}
+			
 			html += "</div></div>";
 			$(appendEl).append(html);
 		});
@@ -479,7 +495,9 @@ $(function() {
 					var rowTerms = {
 						phone: otherLanguageTerms["Phone"][languageCode],
 						address: otherLanguageTerms["Address"][languageCode],
-						visitWebsite: otherLanguageTerms["Visit website"][languageCode]
+						visitWebsite: otherLanguageTerms["Visit website"][languageCode],
+						call: otherLanguageTerms["Call"][languageCode],
+						getDirections: otherLanguageTerms["Get directions"][languageCode]
 					};
 
 					renderRows(inPersonData, "in-person", true, "#list .only-in-person", rowTerms);

@@ -133,6 +133,10 @@ h2 {
 	padding: 10px;
 }
 
+.row-description p a:link, .row-description p a:visited {
+	color: #666;
+}
+
 .row p {
 	margin-bottom: 5px;
 }
@@ -142,16 +146,17 @@ h2 {
 	text-transform: uppercase;
 }
 
-.row .website-btn:link, .row .website-btn:visited {
+.row .action-btn:link, .row .action-btn:visited {
 	display: inline-block;
 	background: #777;
 	padding: 5px;
 	border-radius: 5px;
 	color: #fff;
 	text-decoration: none;
+	margin-right: 5px;
 }
 
-.row .website-btn:hover  {
+.row .action-btn:hover  {
 	background: #666;
 }
 
