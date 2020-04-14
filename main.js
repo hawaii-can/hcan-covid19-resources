@@ -6,8 +6,10 @@ $(function() {
 
 	var windowWidth = $(window).width();
 	var defaultZoom = 6;
+	var locatedZoom = 13;
 	if (windowWidth > 700) {
 		defaultZoom = 7;
+		locatedZoom = 14;
 	}
 
 	var otherLanguages;
@@ -26,7 +28,11 @@ $(function() {
 	var map = L.map('map', {
 		center: [21.311389, -157.796389],
 		zoom: defaultZoom
-	})
+	});
+
+	if (map && navigator.geolocation) {
+		$('#map-locate').data('status','active').show();
+	}
 
 	L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
 	    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
@@ -503,6 +509,36 @@ $(function() {
 	
 	}
 
+	function getLocation() {
+		var $el = $('#map-locate');
+		if ($el.data('status') == 'active') {
+			$el.data('status', 'loading');
+			$el.html('<i class="fas fa-spinner fa-spin"></i>');
+			navigator.geolocation.getCurrentPosition(success, error);
+		}
+
+		function success(position) {
+			var lat  = position.coords.latitude;
+			var lng = position.coords.longitude;
+			map.flyTo([lat, lng], locatedZoom, {duration: 0.75});
+			$('#map-reset').fadeIn(250);
+			reset();
+		}
+
+		function error() {
+			$el.html('<i class="fas fa-exclamation-circle"></i>');
+			setTimeout(function() {
+				reset();
+			}, 1000);
+		}
+
+		function reset() {
+			$el.data('status', 'active');
+			$el.data('status', 'active');
+			$el.html('<i class="fa fa-location-arrow"></i>');
+		}
+	}
+
 	var calculateLayout = _.debounce(function(){
 		windowWidth = $(window).width();
 	}, 300);
@@ -605,7 +641,11 @@ $(function() {
 
 	$('#lang-close').click(function() {
 		updateLanguageSwitcher(null, false);
-	})
+	});
+
+	$('#map-locate').click(function() {
+		getLocation();
+	});
 
 	$(window).resize(calculateLayout);
 

@@ -195,6 +195,37 @@ h2 {
 	background: #444;
 }
 
+#map-locate {
+	position: absolute;
+	background: #fff;
+	bottom: 40px;
+	left: 10px;
+	font-size: 14px;
+	text-align: center;
+	z-index: 10000;
+	border-radius: 2px;
+	height: 30px;
+	width: 30px;
+	line-height: 30px;
+	box-shadow: 0 0px 0px 2px rgba(0,0,0,0.23);
+}
+
+@media(min-width: 700px) {
+	#map-locate {
+		bottom: 10px;
+		border-radius: 4px;
+		box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+		height: 26px;
+		width: 26px;
+		line-height: 26px;
+	}
+}
+
+#map-locate:hover {
+	cursor: pointer;
+	background: #f4f4f4;
+}
+
 .leaflet-marker-icon i {
 	/*text-shadow: 0 0 3px rgba(0,0,0,0.5);*/
 	text-shadow: 0 0 2px #FFF;
@@ -385,3 +416,4 @@ h2 {
 	font-style: italic;
 	color: #666;
 }
+
