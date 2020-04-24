@@ -318,9 +318,12 @@ $(function() {
 		return "";
 	}
 
-	function updateFilter(clear) {
+	function updateFilter(clear, scrollToList) {
 		if (clear == undefined) {
 			clear = false;
+		}
+		if (scrollToList == undefined) {
+			scrollToList = false;
 		}
 
 		$('.category-label, .location-label, .type-label').removeClass('selected');
@@ -390,9 +393,13 @@ $(function() {
 			map.flyTo([21.311389, -157.796389], defaultZoom, {duration: 0.75});	
 		}
 
-		
+		var scrollTop = 0;
+		if (scrollToList) {
+			scrollTop = $('#list').offset().top;
+		}
+
 		$('html, body').animate({
-			scrollTop: 0
+			scrollTop: scrollTop
 		}, 250);
 	}
 
@@ -572,6 +579,7 @@ $(function() {
 	$('#list-wrap').on('click', '.category-label, .location-label, .type-label', function() {
 		var $this = $(this);
 		var clear = false;
+		var scrollToList = false;
 		if ($this.hasClass('category-label')) {
 			// Category
 			selectedCategory = parameterize('category', $(this).text());
@@ -592,14 +600,20 @@ $(function() {
 			}
 		} else if ($this.hasClass('type-label')) {
 			// Type
-			if ($(this).hasClass('type-in-person')) {
+			if ($this.hasClass('jump')) {
+				currentType = $this.data('type');
+				currentCategory = $this.data('category');
+				currentLocation = $(this).data('location');
+				scrollToList = true;
+			} else if ($this.hasClass('type-in-person')) {
 				currentType = 'type-in-person';
+				clear = true;
 			} else {
 				currentType = 'type-online';
+				clear = true;
 			}
-			clear = true;
 		}
-		updateFilter(clear);
+		updateFilter(clear, scrollToList);
 	});
 
 	$('#list-wrap').on('click', '.has-location', function() {
