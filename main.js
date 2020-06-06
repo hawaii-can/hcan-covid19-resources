@@ -149,7 +149,9 @@ $(function() {
 				address: "Address",
 				visitWebsite: "Visit website",
 				call: "Call",
-				getDirections: "Get directions"
+				getDirections: "Get directions",
+				findChildCare: "Find child care",
+				childCare: "Child care"
 			}
 		}
 		_(data).each(function(row, index) {
@@ -212,8 +214,11 @@ $(function() {
 				html += "<p><span class='label'>" + terms.address + "</span> " + address + "</span>";
 			}
 
-			if (row.URL != "" || (usingLocation && (row.Street != "" || row.City != "" || row.ZIP != "")) || row.Phone != "") {
+			if (row.URL != "" || (usingLocation && (row.Street != "" || row.City != "" || row.ZIP != "")) || row.Phone != "" || row.Category == terms.childCare) {
 				html += "<p>";
+				if (row.Category == terms.childCare) {
+					html += "<a class='action-btn' href='https://www.patchhawaii.org/find-child-care/' target='_blank'><i class='fas fa-info-circle'></i> " + terms.findChildCare + "</a>";
+				}
 				if (row.URL != "") {
 					html += "<a class='action-btn' href='" + row.URL + "' target='_blank'><i class='fas fa-external-link-square-alt'></i> " + terms.visitWebsite + "</a>";
 				}
@@ -504,7 +509,9 @@ $(function() {
 						address: otherLanguageTerms["Address"][languageCode],
 						visitWebsite: otherLanguageTerms["Visit website"][languageCode],
 						call: otherLanguageTerms["Call"][languageCode],
-						getDirections: otherLanguageTerms["Get directions"][languageCode]
+						getDirections: otherLanguageTerms["Get directions"][languageCode],
+						findChildCare: otherLanguageTerms["Find child care"][languageCode],
+						childCare: otherLanguageTerms["Child care"][languageCode]
 					};
 
 					renderRows(inPersonData, "in-person", true, "#list .only-in-person", rowTerms);
