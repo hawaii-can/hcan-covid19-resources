@@ -19,10 +19,33 @@ $(function() {
 	var successRe = /^\#success/;
 	var langRe = /lang-([a-zA-Z-]+)$/;
 
-	Tabletop.init({
-		key: '1TpA6W7dMdj-IfflZZVdhgwZ_0UvvARd-3WCq8xXTt2E',
-		callback: init
+	// Tabletop.init({
+	// 	key: '1TpA6W7dMdj-IfflZZVdhgwZ_0UvvARd-3WCq8xXTt2E',
+	// 	callback: init
+	// });
 
+	var locationResourcesURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm_HYq0rmBPR_Qc-M6F9IIJYTjv1aa4n-NRIodaVb4Jq64QVNeA89IPh80P_zbqQEDhcUB0Ab_Ju2Q/pub?gid=0&single=true&output=csv";
+	var onlineResourcesURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm_HYq0rmBPR_Qc-M6F9IIJYTjv1aa4n-NRIodaVb4Jq64QVNeA89IPh80P_zbqQEDhcUB0Ab_Ju2Q/pub?gid=1922664152&single=true&output=csv";
+	var foodResourcesURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm_HYq0rmBPR_Qc-M6F9IIJYTjv1aa4n-NRIodaVb4Jq64QVNeA89IPh80P_zbqQEDhcUB0Ab_Ju2Q/pub?gid=1415851406&single=true&output=csv";
+
+	Papa.parse(locationResourcesURL, {
+		download: true,
+		header: true,
+		complete: function(locationData) {
+			Papa.parse(onlineResourcesURL, {
+				download: true,
+				header: true,
+				complete: function(onlineData) {
+					Papa.parse(foodResourcesURL, {
+						download: true,
+						header: true,
+						complete: function(foodData) {
+							init(locationData.data, foodData.data, onlineData.data);
+						}
+					});
+				}
+			});
+		}
 	});
 
 	var map = L.map('map', {
@@ -43,13 +66,13 @@ $(function() {
 	    accessToken: 'pk.eyJ1IjoicmNhdGFsYW5pLWhjYW4iLCJhIjoiY2s4NzJvM3piMGN0aDNsbmh3bGJ6bWJyNCJ9.RUI7xHjaMpxI4v-U0qKFBw'
 	}).addTo(map);
 
-	function init(data, tabletop) {
+	function init(locationData, foodData, onlineData) {
 		// console.log(data);
 		// console.log(tabletop);
 
-		var locationData = tabletop.sheets('Resources').all();
-		var foodData = tabletop.sheets('FoodResources').all();
-		var onlineData = tabletop.sheets('OnlineResources').all();
+		// var locationData = tabletop.sheets('Resources').all();
+		// var foodData = tabletop.sheets('FoodResources').all();
+		// var onlineData = tabletop.sheets('OnlineResources').all();
 
 		// Add unique categories as buttons.
 
@@ -121,7 +144,7 @@ $(function() {
 				$('#list-inside').slideDown(200);	
 
 				$("#lang-en").addClass('lang-active');
-				updateLanguageSwitcher('en', false);
+				// updateLanguageSwitcher('en', false);
 			}
 
 			if (langRe.test(location.hash)) {
@@ -445,17 +468,28 @@ $(function() {
 
 		if (otherLanguages == undefined) {
 			// First load
-			Tabletop.init({
-				key: '1SAgHX0KK7Cd5enyX6HtbFEXvgKGKfn3bOQ0wRgteIPg',
-				callback: function(data, tabletop) {
-					otherLanguages = tabletop;
-
-					var terms = otherLanguages.sheets("Terms").all();
+			var otherLanguagesURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsAD49Z1N3k4Iu-tX4kXRgxZduW5FYwQ-5ts9NWQAUX8qyZourxwjF2HptoGmH6coBcUPp6psfh7XD/pub?output=csv";
+			Papa.parse("onlineResourcesURL", {
+				download: true,
+				header: true,
+				complete: function(terms) {
 					otherLanguageTerms = _.chain(terms).map(function(obj){ return [obj["en"],obj] }).object().value();
 
 					getLanguage(languageCode, outerCallback);
 				}
-			});			
+			});
+
+			// Tabletop.init({
+			// 	key: '1SAgHX0KK7Cd5enyX6HtbFEXvgKGKfn3bOQ0wRgteIPg',
+			// 	callback: function(data, tabletop) {
+			// 		otherLanguages = tabletop;
+
+			// 		var terms = otherLanguages.sheets("Terms").all();
+			// 		otherLanguageTerms = _.chain(terms).map(function(obj){ return [obj["en"],obj] }).object().value();
+
+			// 		getLanguage(languageCode, outerCallback);
+			// 	}
+			// });			
 		} else {
 			// Already loaded
 			var langData = otherLanguages.sheets(languageCode);
