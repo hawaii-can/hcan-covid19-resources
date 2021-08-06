@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Hawaiʻi COVID-19 Resources</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<meta property="og:url" content="https://covid19.hawaii-can.org" />
+	<meta property="og:title" content="Hawaiʻi COVID-19 Resources" />
+	<meta property="og:description" content="Find resources for vaccines, testing, and financial/housing help." />
+	<meta property="og:image" content="http://hcan-public-us-west.s3.amazonaws.com/covid-resources-social.jpg" />
+
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:site" content="@HCAN_HI" />
+	<meta name="twitter:title" content="Hawaiʻi COVID-19 Resources" />
+	<meta name="twitter:description" content="Find resources for vaccines, testing, and financial/housing help." />
+	<meta name="twitter:image" content="http://hcan-public-us-west.s3.amazonaws.com/covid-resources-social.jpg" />
+
+	<meta name="description" content="Find resources for vaccines, testing, and financial/housing help." />
+
+	<link rel="stylesheet" href="main-v2.css">
+	<link rel="stylesheet" href="flag-icon.min.css">
+	<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i&display=swap&subset=latin-ext" rel="stylesheet">
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+</head>
+<body>
+
+	<div id="languages-wrap" style="display:none;">
+		<header id="lang-close">
+			&times; <span class="translatable">Close</span>
+		</header>
+		<div class="lang-option" id="lang-en">
+			<span class="flag-icon flag-icon-us"></span> English	
+		</div>
+		<div class="lang-option" id="lang-tl">
+			<span class="flag-icon flag-icon-ph"></span> Wikang Filipino	
+		</div>
+		<div class="lang-option" id="lang-haw">
+			<span class="flag-icon flag-icon-hawaii"></span> ʻŌlelo Hawaiʻi
+		</div>
+		<div class="lang-option" id="lang-zh-CN">
+			<span class="flag-icon flag-icon-cn"></span> 简化字
+		</div>
+		<footer class="translatable">
+			Translations by Google Translate.
+		</footer>
+	</div>
+
+	<div id="embed-wrap" class="closable" style="display:none;">
+		<div id="embed-info">
+			<div class="close">&times; <span class="translatable">Close</span></div>
+			<span class="translatable">You are welcome to embed this map on your own website! Copy and paste the code below.</span>
+			<textarea readonly><iframe src="https://covid19.hawaii-can.org/" width="100%" height="750px" frameborder="0"></iframe></textarea>
+		</div>
+	</div>
+	
+	<div id="updates-signup-success-wrap" class="closable" style="display:none;">
+		<div id="updates-signup-success">
+			<div class="close close-white">&times; <span class="translatable">Close</span></div>
+			<span class="translatable">Thanks for signing up!</span>
+		</div>
+	</div>
+
+	<div id="updates-signup-wrap" class="closable" style="display:none;">
+		<form name="updates-signup" method="POST" action="/#success" netlify>
+			<div class="close" id="updates-signup-hide">&times; <span class="translatable">Close</span></div>
+			<strong class="translatable">Sign up for daily emails about new resources:</strong> <span class="input-group"><label for="form_first_name" class="translatable">First name</label><input type="text" name="first_name" id="form_first_name" required="true"></span> <span class="input-group"><label for="email" class="translatable">Email</label><input type="email" name="email" id="form_email" required="true"></span><input type="submit">
+		</form>
+	</div>
+
+
+	<div class="wrap">
+		<header id="top-header">
+			<a href="https://www.hawaii-can.org" id="logo"><img src="hcan-logo.png" alt=""></a>
+			<h1 class="translatable">Hawaiʻi COVID-19 Resources</h1>
+			
+			<div id="top-links">
+				<a href="https://www.facebook.com/sharer/sharer.php?u=https%3A//covid19.hawaii-can.org" target="_blank"><i class="fa fa-facebook-square"></i> <span class="translatable">Share</span></a>
+				<a href="https://twitter.com/intent/tweet?text=Find%20%23Hawaii%20resources%20to%20help%20with%20the%20%23COVID19%20crisis%20at%20https%3A//covid19.hawaii-can.org,%20via%20%40HCAN_HI%0A%0Ahttps%3A//twitter.com/HCAN_HI/status/1243372836019986432" target="_blank"><i class="fa fa-twitter-square"></i> <span class="translatable">Tweet</span></a>
+				<!-- <a href="#" id="show-embed"><i class="fas fa-share-alt-square"></i> <span class="translatable">Embed</span></a> -->
+				<a href="https://www.hawaii-can.org/covid_19_resources_contribute" target="_blank"><i class="fa fa-plus-square"></i> <span class="translatable">Contribute</span></a>
+				<a href="mailto:info@hawaii-can.org" target="_blank"><i class="fa fa-envelope-square"></i> <span class="translatable">Contact</span></a>
+				<a href="http://hawaiicovid19.com/" target="_blank"><i class="fas fa-flag"></i> <span class="translatable">State website</span></a>
+			</div>
+
+			<div id="loading"><i class="fas fa-spinner fa-spin"></i> <span class="translatable">Loading</span>...</div>
+		</header>
+
+		<h2>Vaccination and testing sites</h2>
+		<p><em>Need help registering?</em> If you are age 65 or older, call <a href="tel:211">211</a> to schedule an appointment and to access transportation services to and from your vaccine appointment.</p>
+		<p><em>Want the vaccine brought to you?</em> If you are under age 65, or would like an in-home vaccination, call <a href="tel:808-586-8332">808-586-8332</a> or <a href="tel:833-711-0645">833-711-0645</a> for help scheduling an appointment.</p>
+	</div>
+
+	<div id="map-wrap-outer">
+
+		<div id="map-wrap">
+			<div id="map-reset" style="display:none;" class="translatable">Reset</div>
+			<div id="map-locate" style="display:none;"><i class="fa fa-location-arrow"></i></div>
+			<div id="map"></div>
+		</div>
+		
+		<div id="list-wrap">
+
+			<div id="list-inside" style="display:none;">
+				<header class="category-lists">
+<!-- 					<h2 class="translatable">I'm looking for...</h2>
+
+					<div id="type-list">
+						<div class="caption translatable">Resource Type</div>
+						<span class="type-label type-in-person selected translatable">In-Person</span>
+						<span class="type-label type-online translatable">Online</span>
+						<span class="type-label jump" data-type="type-online" data-location="location-everywhere" data-category="category-financial20needs">Financial Assistance</span>
+						<span class="type-label jump" data-type="type-online" data-location="location-everywhere" data-category="category-housing">Housing Assistance</span>
+					</div>
+ -->
+
+					<div id="category-list">
+						<div class="caption translatable">Category</div>
+						<div class="only-in-person" id="category-list-in-person"></div>
+					</div>
+					<div id="location-list" class="only-in-person">
+						<div class="caption translatable">Location</div>
+						<div id="location-list-inside"></div>
+					</div>
+				</header>
+
+				<div id="list">
+					<div class="only-in-person"></div>
+					<div class="only-online"></div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<div class="wrap">
+		<h2>Financial resources and housing help</h2>
+		<!-- <header class="category-lists">
+			<div id="category-list">
+				<div class="caption translatable">Category</div>
+				<div id="category-list-online"></div>
+			</div>
+		</header> -->
+
+		<div id="list-financial-housing"></div>
+	</div>
+
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore-min.js"></script>
+	<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.1/papaparse.min.js" integrity="sha512-EbdJQSugx0nVWrtyK3JdQQ/03mS3Q1UiAhRtErbwl1YL/+e2hZdlIcSURxxh7WXHTzn83sjlh2rysACoJGfb6g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://d3js.org/d3-color.v1.min.js"></script>
+	<script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+	<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+	<script src="https://kit.fontawesome.com/34652e81df.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
+	<script src="main-v2.js"></script>
+
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-74050420-1"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'UA-74050420-1');
+	</script>
+
+
+</body>
+</html>
