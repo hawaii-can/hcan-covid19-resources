@@ -16,12 +16,19 @@ def run(location_csv_url)
 	s3_current_locations = JSON.parse(s3_locations_object.get.body.read, symbolize_names: true)
 	current_address_ids = s3_current_locations.select{|l| !l.nil?}.map{|r| r[:address_id]}
 
+	# Get scraped data
+	s3_vaccines_object = s3.bucket(ENV['S3_BUCKET']).object("covid_scraped_vaccines.json")
+	scraped_vaccines = JSON.parse(s3_vaccines_object.get.body.read, symbolize_names: true)
+
+	s3_testing_object = s3.bucket(ENV['S3_BUCKET']).object("covid_scraped_testing.json")
+	scraped_testing = JSON.parse(s3_testing_object.get.body.read, symbolize_names: true)
+
 	# Download and parse Google Sheet
 	open(location_csv_url, 'r:utf-8') do |f|
 		puts "opening #{location_csv_url}"
 		rows = SmarterCSV.process(f)
 
-		new_locations = rows.map do |row|
+		current_locations = rows.map do |row|
 			# Generate address IDs
 			address = row[:address]
 
@@ -29,7 +36,19 @@ def run(location_csv_url)
 				address_id: address.downcase.gsub(/\W/,''),
 				address_str: address
 			}
-		end.select do |row|
+		end
+
+		scraped_locations = scraped_vaccines[:data].concat(scraped_testing[:data]).map do |row|
+			address = row[:Address]
+			{
+				address_id: address.downcase.gsub(/\W/,''),
+				address_str: address
+			}
+		end.reject{|row| row[:address_id] == "" }
+
+		current_locations.concat(scraped_locations)
+
+		new_locations = current_locations.select do |row|
 			# Only select new addresses
 			!current_address_ids.include? (row[:address_id])
 		end.map do |row|
