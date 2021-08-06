@@ -28,6 +28,9 @@ $(function() {
 	var testingURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm_HYq0rmBPR_Qc-M6F9IIJYTjv1aa4n-NRIodaVb4Jq64QVNeA89IPh80P_zbqQEDhcUB0Ab_Ju2Q/pub?gid=262006366&single=true&output=csv";
 	var housingFinancialURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm_HYq0rmBPR_Qc-M6F9IIJYTjv1aa4n-NRIodaVb4Jq64QVNeA89IPh80P_zbqQEDhcUB0Ab_Ju2Q/pub?gid=47580724&single=true&output=csv";
 
+	var scrapedVaccineURL = "https://hcan-public-us-west.s3.amazonaws.com/covid_scraped_vaccines.json";
+	var scrapedTestingURL = "https://hcan-public-us-west.s3.amazonaws.com/covid_scraped_testing.json";
+
 	Papa.parse(vaccineURL, {
 		download: true,
 		header: true,
@@ -40,7 +43,20 @@ $(function() {
 						download: true,
 						header: true,
 						complete: function(housingFinancialData) {
-							init(vaccineData.data, testingData.data, housingFinancialData.data);
+
+							$.getJSON(scrapedVaccineURL, function(scrapedVaccineData) {
+								$.getJSON(scrapedTestingURL, function(scrapedTestingData) {
+									init({
+										vaccineData: vaccineData.data,
+										testingData: testingData.data,
+										housingFinancialData: housingFinancialData.data,
+										scrapedVaccineData: scrapedVaccineData,
+										scrapedTestingData: scrapedTestingData
+									});
+								});
+							});
+
+						
 						}
 					});
 				}
@@ -66,7 +82,17 @@ $(function() {
 	    accessToken: 'pk.eyJ1IjoicmNhdGFsYW5pLWhjYW4iLCJhIjoiY2s4NzJvM3piMGN0aDNsbmh3bGJ6bWJyNCJ9.RUI7xHjaMpxI4v-U0qKFBw'
 	}).addTo(map);
 
-	function init(vaccineData, testingData, housingFinancialData) {
+	function init(args) {
+
+		var vaccineData = args.vaccineData;
+		var testingData = args.testingData;
+		var housingFinancialData = args.housingFinancialData;
+		var scrapedVaccineData = args.scrapedVaccineData;
+		var scrapedTestingData = args.scrapedTestingData;
+
+		console.log(vaccineData);
+		console.log(scrapedVaccineData.data);
+
 		// Reassign old variables
 		var locationData = vaccineData;
 		var foodData = testingData;
@@ -135,7 +161,9 @@ $(function() {
 				}
 				// Render rows
 				renderRows(locationData, "in-person", true, "#list .only-in-person", undefined, "Vaccines");
+				renderRows(scrapedVaccineData.data, "in-person", true, "#list .only-in-person", undefined, "Vaccines");
 				renderRows(foodData, "in-person-food", true, "#list .only-in-person", undefined, "Testing");
+				renderRows(scrapedTestingData.data, "in-person-food", true, "#list .only-in-person", undefined, "Testing");
 				renderRows(onlineData, "online", false, "#list-financial-housing");
 
 				// Assign colors
