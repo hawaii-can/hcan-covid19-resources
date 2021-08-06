@@ -76,6 +76,9 @@ h2 {
 .wrap p a:link, .wrap p a:visited {
   color: #00adee;
 }
+.wrap p a:hover {
+  color: #0088bb;
+}
 
 #top-header {
   margin-top: 20px;
@@ -249,7 +252,7 @@ h2 {
   height: 80vh;
   overflow-y: scroll;
   background: #FAFAFA;
-  margin: 20px auto;
+  margin: 20px auto 100px;
   border: 1px solid #ccc;
   border-radius: 5px;
 }
@@ -499,6 +502,16 @@ h2 {
 #languages-wrap footer {
   font-style: italic;
   color: #666;
+}
+
+.sources {
+  font-size: 0.8em;
+  line-height: 1.4em;
+  font-style: italic;
+}
+
+#list-financial-housing {
+  margin-top: 20px;
 }
 
 /*# sourceMappingURL=main-v2.css.map */

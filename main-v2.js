@@ -193,6 +193,8 @@ $(function() {
 
 		});
 
+		$("#last-updated-date").text(scrapedVaccineData.lastUpdated);
+
 	}
 
 	function renderRows(data, prefix, usingLocation, appendEl, terms, rowCategory) {

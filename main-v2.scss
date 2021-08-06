@@ -24,6 +24,9 @@ h2 {
 			&:link, &:visited {
 				color: #00adee;
 			}
+			&:hover {
+				color: darken(#00adee, 10%);
+			}
 		}
 	}
 }
@@ -200,7 +203,7 @@ h2 {
 	height: 80vh;
 	overflow-y: scroll;
 	background: #FAFAFA;
-	margin: 20px auto;
+	margin: 20px auto 100px;
 	border: 1px solid #ccc;
 	border-radius: 5px;
 }
@@ -447,3 +450,12 @@ h2 {
 	color: #666;
 }
 
+.sources {
+	font-size: 0.8em;
+	line-height: 1.4em;
+	font-style: italic;
+}
+
+#list-financial-housing {
+	margin-top: 20px;
+}
