@@ -48,13 +48,13 @@ def vaccines_gov
 		end
 
 		final_row = {
-			name: provider[:name],
-			expiration_date: "",
-			description: description,
-			phone: provider[:phone],
-			url: provider_url,
-			island: "",
-			address: "#{provider[:address1]} #{provider[:address2]}, #{provider[:city]}, #{provider[:state]}, #{provider[:zip]}"
+			"Name": provider[:name],
+			"Expiration date": "",
+			"Description": description,
+			"Phone": provider[:phone],
+			"URL": provider_url,
+			"Island": "",
+			"Address": "#{provider[:address1]} #{provider[:address2]}, #{provider[:city]}, #{provider[:state]}, #{provider[:zip]}"
 		}
 		final_rows << final_row
 	end
@@ -74,13 +74,13 @@ def oahu_vaccines
 	final_rows = []
 	parsed.each do |row|
 		final_row = {
-			name: row[0],
-			expiration_date: "",
-			description: "#{row[8]}. #{row[12]}. Listed on OneOahu.org.",
-			phone: row[1],
-			url: row[6],
-			island: "Oʻahu",
-			address: "#{row[2]}, #{row[3]}, #{row[4]} #{row[5]}"
+			"Name": row[0],
+			"Expiration date": "",
+			"Description": "#{row[8]}. #{row[12]}. Listed on OneOahu.org.",
+			"Phone": row[1],
+			"URL": row[6],
+			"Island": "Oʻahu",
+			"Address": "#{row[2]}, #{row[3]}, #{row[4]} #{row[5]}"
 		}
 		final_rows << final_row
 	end
@@ -105,13 +105,13 @@ def hawaii_county(ics_url, source_url)
 	final_rows = []
 	future_events.each do |event|
 		final_row = {
-			name: event[:summary],
-			expiration_date: "#{event[:dtend][0][0,4]}-#{event[:dtend][0][4,2]}-#{event[:dtend][0][6,2]}",
-			description: event[:description].gsub('\n\n',". ").gsub('\,',',').gsub("</p><p>",". ").gsub(/<\/?p>/,""),
-			phone: "",
-			url: source_url,
-			island: "Hawaiʻi",
-			address: ""
+			"Name": event[:summary],
+			"Expiration date": "#{event[:dtend][0][0,4]}-#{event[:dtend][0][4,2]}-#{event[:dtend][0][6,2]}",
+			"Description": event[:description].gsub('\n\n',". ").gsub('\,',',').gsub("</p><p>",". ").gsub(/<\/?p>/,""),
+			"Phone": "",
+			"URL": source_url,
+			"Island": "Hawaiʻi",
+			"Address": ""
 		}
 		final_rows << final_row
 	end
@@ -155,13 +155,13 @@ def maui_county
 		end
 
 		final_row = {
-			name: marker[:name],
-			expiration_date: "",
-			description: description,
-			phone: "",
-			url: "https://www.mauinuistrong.info",
-			island: "Maui",
-			address: marker[:formattedAddress]
+			"Name": marker[:name],
+			"Expiration date": "",
+			"Description": description,
+			"Phone": "",
+			"URL": "https://www.mauinuistrong.info",
+			"Island": "Maui",
+			"Address": marker[:formattedAddress]
 		}
 		final_rows << final_row
 	end
@@ -175,16 +175,25 @@ def save_data
 	s3_vaccines_object = s3.bucket(ENV['S3_BUCKET']).object("covid_scraped_vaccines.json")
 	s3_testing_object = s3.bucket(ENV['S3_BUCKET']).object("covid_scraped_testing.json")
 
+	date_str = (Time.now.utc-10*60*60).strftime("%B %-d, %Y")
+
 	hawaii_county_testing = hawaii_county("https://calendar.google.com/calendar/ical/hccdacovid19%40gmail.com/public/basic.ics", "https://coronavirus-response-county-of-hawaii-hawaiicountygis.hub.arcgis.com/pages/covid-19-testing")
-	all_testing = hawaii_county_testing
+	all_testing = {
+		data: hawaii_county_testing,
+		lastUpdated: date_str
+	}
 
 	hawaii_county_vaccines = hawaii_county("https://calendar.google.com/calendar/ical/u5jtbme8e9l0k4s67pdn1conuc%40group.calendar.google.com/public/basic.ics", "https://coronavirus-response-county-of-hawaii-hawaiicountygis.hub.arcgis.com/pages/vaccine-information")
-	all_vaccines = [
+	all_vaccines_data = [
 		vaccines_gov,
 		oahu_vaccines,
 		maui_county,
 		hawaii_county_vaccines
 	].flatten
+	all_vaccines = {
+		data: all_vaccines_data,
+		lastUpdated: date_str	
+	}
 
 	s3_vaccines_object.put(body: all_vaccines.to_json)
 	s3_testing_object.put(body: all_testing.to_json)
