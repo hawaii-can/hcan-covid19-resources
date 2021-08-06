@@ -7,18 +7,18 @@
 
 	<meta property="og:url" content="https://covid19.hawaii-can.org" />
 	<meta property="og:title" content="Hawaiʻi COVID-19 Resources" />
-	<meta property="og:description" content="Find free vaccination sites, testing locations, and financial/housing help." />
+	<meta property="og:description" content="View local resources to help with the COVID-19 crisis." />
 	<meta property="og:image" content="http://hcan-public-us-west.s3.amazonaws.com/covid-resources-social.jpg" />
 
-	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:card" content="summary" />
 	<meta name="twitter:site" content="@HCAN_HI" />
 	<meta name="twitter:title" content="Hawaiʻi COVID-19 Resources" />
-	<meta name="twitter:description" content="Find free vaccination sites, testing locations, and financial/housing help." />
+	<meta name="twitter:description" content="View local resources to help with the COVID-19 crisis." />
 	<meta name="twitter:image" content="http://hcan-public-us-west.s3.amazonaws.com/covid-resources-social.jpg" />
 
-	<meta name="description" content="Find free vaccination sites, testing locations, and financial/housing help." />
+	<meta name="description" content="View local resources to help with the COVID-19 crisis." />
 
-	<link rel="stylesheet" href="main-v2.css">
+	<link rel="stylesheet" href="main.css">
 	<link rel="stylesheet" href="flag-icon.min.css">
 	<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i&display=swap&subset=latin-ext" rel="stylesheet">
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
@@ -69,32 +69,7 @@
 	</div>
 
 
-	<div class="wrap">
-		<header id="top-header">
-			<a href="https://www.hawaii-can.org" id="logo"><img src="hcan-logo.png" alt=""></a>
-			<h1 class="translatable">Hawaiʻi COVID-19 Resources</h1>
-			
-			<div id="top-links">
-				<a href="https://www.facebook.com/sharer/sharer.php?u=https%3A//covid19.hawaii-can.org" target="_blank"><i class="fa fa-facebook-square"></i> <span class="translatable">Share</span></a>
-				<a href="https://twitter.com/intent/tweet?text=Find%20%23Hawaii%20resources%20to%20help%20with%20the%20%23COVID19%20crisis%20at%20https%3A//covid19.hawaii-can.org,%20via%20%40HCAN_HI%0A%0Ahttps%3A//twitter.com/HCAN_HI/status/1243372836019986432" target="_blank"><i class="fa fa-twitter-square"></i> <span class="translatable">Tweet</span></a>
-				<!-- <a href="#" id="show-embed"><i class="fas fa-share-alt-square"></i> <span class="translatable">Embed</span></a> -->
-				<a href="https://www.hawaii-can.org/covid_19_resources_contribute" target="_blank"><i class="fa fa-plus-square"></i> <span class="translatable">Contribute</span></a>
-				<a href="mailto:info@hawaii-can.org" target="_blank"><i class="fa fa-envelope-square"></i> <span class="translatable">Contact</span></a>
-				<a href="http://hawaiicovid19.com/" target="_blank"><i class="fas fa-flag"></i> <span class="translatable">State website</span></a>
-			</div>
-		</header>
-
-		<h2>Vaccination and testing sites</h2>
-		<p><strong>Scroll down to access financial and housing resources.</strong></p>
-		<p>The COVID-19 vaccines are safe and highly effective. It is free to get vaccinated, whether or not you have insurance. Use the map below to find one near you.</p>
-		<p><em>Need help registering for a vaccination appointment?</em> If you are age 65 or older, call <a href="tel:211">211</a> to schedule an appointment and to access transportation services to and from your vaccine appointment.</p>
-		<p><em>Want the vaccine brought to you?</em> If you are under age 65, or would like an in-home vaccination, call <a href="tel:808-586-8332">808-586-8332</a> or <a href="tel:833-711-0645">833-711-0645</a> for help scheduling an appointment.</p>
-		<p class="sources">This map compiles data from the <a href="https://hawaiicovid19.com" target="_blank">State of Hawaiʻi COVID-19 Portal</a>, <a href="http://vaccines.gov" target="_blank">Vaccines.gov</a>, the <a href="https://www.oneoahu.org/find-vaccine" target="_blank">City and County of Honolulu</a>, <a href="https://www.mauinuistrong.info" target="_blank">Maui Nui Strong</a>, the <a href="https://www.kauai.gov/Government/Departments-Agencies/Emergency-Management-Agency-formerly-Civil-Defense/Coronavirus-Disease-2019-COVID-19/Vaccine" target="_blank">County of Kauaʻi</a>, the <a href="https://coronavirus-response-county-of-hawaii-hawaiicountygis.hub.arcgis.com/pages/vaccine-information" target="_blank">County of Hawaiʻi</a>, and the <a href="https://www.hah.org/covid19" target="_blank">Healthcare Assocation of Hawaiʻi</a>. Last updated: <span id="last-updated-date"></span>.</p>
-	</div>
-
-	<div id="map-wrap-outer">
-
-		<div class="loading"><i class="fas fa-spinner fa-spin"></i> <span class="translatable">Loading</span>...</div>
+	<div id="main-wrap">
 
 		<div id="map-wrap">
 			<div id="map-reset" style="display:none;" class="translatable">Reset</div>
@@ -103,10 +78,30 @@
 		</div>
 		
 		<div id="list-wrap">
+			<header>
+				<a href="https://www.hawaii-can.org" id="logo"><img src="hcan-logo.png" alt=""></a>
+				<h1 class="translatable">Hawaiʻi COVID-19 Resources</h1>
+				
+				<div id="top-links">
+					<a href="https://www.facebook.com/sharer/sharer.php?u=https%3A//covid19.hawaii-can.org" target="_blank"><i class="fa fa-facebook-square"></i> <span class="translatable">Share</span></a>
+					<a href="https://twitter.com/intent/tweet?text=Find%20%23Hawaii%20resources%20to%20help%20with%20the%20%23COVID19%20crisis%20at%20https%3A//covid19.hawaii-can.org,%20via%20%40HCAN_HI%0A%0Ahttps%3A//twitter.com/HCAN_HI/status/1243372836019986432" target="_blank"><i class="fa fa-twitter-square"></i> <span class="translatable">Tweet</span></a>
+					<a href="#" id="show-embed"><i class="fas fa-share-alt-square"></i> <span class="translatable">Embed</span></a>
+					<a href="https://www.hawaii-can.org/covid_19_resources_contribute" target="_blank"><i class="fa fa-plus-square"></i> <span class="translatable">Contribute</span></a>
+					<a href="https://www.hawaii-can.org/covid_19_resources_pdfs" target="_blank"><i class="fas fa-file-download"></i> PDFs</a>
+					<a href="mailto:info@hawaii-can.org" target="_blank"><i class="fa fa-envelope-square"></i> <span class="translatable">Contact</span></a>
+					<a href="http://hawaiicovid19.com/" target="_blank"><i class="fas fa-flag"></i> <span class="translatable">State website</span></a>
+				</div>
+
+				<div id="contributors">
+					<span class="translatable">Contributors include</span> <a href="https://alohaharvest.org/" target="_blank">Aloha Harvest</a>, <a href="https://www.chefhui.com/" target="_blank">Chef Hui</a>, <a href="https://hiappleseed.org/" target="_blank">Hawaiʻi Appleseed Center for Law and Economic Justice</a>, <a href="https://uhfamily.hawaii.edu/project/hawaii-kids-count" target="_blank">Hawaiʻi KIDS COUNT</a>, <a href="https://www.hiphi.org/" target="_blank">Hawaiʻi Public Health Institute</a>, & <a href="https://supersistence.org" target="_blank">Hunter Heaivilin</a>.
+				</div>
+
+				<div id="loading"><i class="fas fa-spinner fa-spin"></i> <span class="translatable">Loading</span>...</div>
+			</header>
 
 			<div id="list-inside" style="display:none;">
 				<header class="category-lists">
-<!-- 					<h2 class="translatable">I'm looking for...</h2>
+					<h2 class="translatable">I'm looking for...</h2>
 
 					<div id="type-list">
 						<div class="caption translatable">Resource Type</div>
@@ -115,11 +110,12 @@
 						<span class="type-label jump" data-type="type-online" data-location="location-everywhere" data-category="category-financial20needs">Financial Assistance</span>
 						<span class="type-label jump" data-type="type-online" data-location="location-everywhere" data-category="category-housing">Housing Assistance</span>
 					</div>
- -->
+
 
 					<div id="category-list">
 						<div class="caption translatable">Category</div>
 						<div class="only-in-person" id="category-list-in-person"></div>
+						<div class="only-online" id="category-list-online"></div>
 					</div>
 					<div id="location-list" class="only-in-person">
 						<div class="caption translatable">Location</div>
@@ -136,22 +132,6 @@
 
 	</div>
 
-	<div class="wrap">
-		<h2>Financial resources and housing help</h2>
-		<!-- <header class="category-lists">
-			<div id="category-list">
-				<div class="caption translatable">Category</div>
-				<div id="category-list-online"></div>
-			</div>
-		</header> -->
-
-		<p>The <a href="https://www.cdc.gov/coronavirus/2019-ncov/covid-eviction-declaration.html" target="_blank">CDC Eviction Moratorium</a> is in effect until October 3, 2021. As of August 6, 2021, the Moratorium applies to all Hawaiʻi counties, according to <a href="https://twitter.com/brianschatz/status/1423736368862224395" target="_blank">Senator Brian Schatz</a>. </p>
-
-		<div class="loading"><i class="fas fa-spinner fa-spin"></i> <span class="translatable">Loading</span>...</div>
-
-		<div id="list-financial-housing"></div>
-	</div>
-
 	
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore-min.js"></script>
@@ -162,7 +142,7 @@
 	<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 	<script src="https://kit.fontawesome.com/34652e81df.js" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
-	<script src="main-v2.js"></script>
+	<script src="main.js"></script>
 
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-74050420-1"></script>
