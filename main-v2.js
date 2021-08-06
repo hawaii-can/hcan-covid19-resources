@@ -170,7 +170,7 @@ $(function() {
 				assignCategoryColors([categories, onlineCategories], "Everything");
 
 				updateFilter(true);
-				$('#loading').slideUp(200);
+				$('.loading').slideUp(200);
 				$('#list-inside').slideDown(200);	
 
 				$("#lang-en").addClass('lang-active');
@@ -505,7 +505,7 @@ $(function() {
 
 	function getLanguage(languageCode, outerCallback) {
 		$('#list-inside').slideUp(200);
-		$('#loading').slideDown(200);
+		$('.loading').slideDown(200);
 
 		if (otherLanguages == undefined) {
 			// First load
@@ -596,7 +596,7 @@ $(function() {
 					updateFilter();
 
 					$('#list-inside').slideDown(200);
-					$('#loading').slideUp(200);
+					$('.loading').slideUp(200);
 					updateLanguageSwitcher(languageCode, false);
 					location.hash = "#lang-" + languageCode;
 					if (outerCallback != undefined) {
@@ -610,7 +610,7 @@ $(function() {
 				}
 				location.hash = "";
 				$('#list-inside').slideDown(200);
-				$('#loading').slideUp(200);
+				$('.loading').slideUp(200);
 			}
 		}
 	
