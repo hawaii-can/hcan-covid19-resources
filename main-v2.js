@@ -191,7 +191,6 @@ $(function() {
 			} else {
 				category = rowCategory;
 			}
-			console.log(rowCategory, row.Category, category);
 
 			if (row.Name == undefined || row.Name == "") {
 				return;
@@ -436,7 +435,7 @@ $(function() {
 			scrollTop = $('#list').offset().top;
 		}
 
-		$('html, body').animate({
+		$('#map-wrap-outer, #list-wrap').animate({
 			scrollTop: scrollTop
 		}, 250);
 	}
@@ -458,13 +457,15 @@ $(function() {
 		if ($row.length > 0) {
 			$('.row.map-selected').removeClass('map-selected');
 			$row.addClass('map-selected');
-			var scroll = $row.offset().top;
+			var scroll = $row.offset().top - $('#list-wrap').offset().top + $('#list-wrap').scrollTop() + $('#map-wrap-outer').scrollTop();
+			console.log($row.offset().top, $('#list-wrap').offset().top, $('#list-wrap').scrollTop(), $('#map-wrap-outer').scrollTop());
+			console.log(scroll);
 
-			if (windowWidth <= 600) {
-				scroll -= 300;
-			}
+			// if (windowWidth < 700) {
+			// 	scroll -= 300;
+			// }
 
-			$('html, body').animate({
+			$('#map-wrap-outer, #list-wrap').animate({
 				scrollTop: scroll
 			}, 250);
 		}
