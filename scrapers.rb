@@ -201,4 +201,118 @@ def save_data
 	puts "Saved data."
 end
 
-save_data
+def check_address(str)
+	if str.nil?
+		return ""
+	end
+
+	components = str.split(",").map(&:strip)
+	if components.include?("HI") || components.include?("Hawaii") || str =~ /(HI|Hawaii) \d{5,}/
+		return str
+	else
+		puts "Fixing address: #{str}"
+		return "#{str}, Hawaii"
+	end
+end
+
+def hawaiicovid9_data
+	all_vaccines_data = []
+	all_testing_data = []
+
+	puts "Starting vaccine_geojson_url"
+	vaccine_geojson_url = "https://services.arcgis.com/HQ0xoN0EzDPBOEci/arcgis/rest/services/20210901_Vaccination_Campaign_Public_View/FeatureServer/0/query?f=geojson&cacheHint=true&maxRecordCountFactor=4&resultOffset=0&resultRecordCount=8000&where=(Status%20%3D%20%27Confirmed%27)%20OR%20(Status%20%3D%20%27Ongoing%20Provider%27)&orderByFields=OBJECTID&outFields=*&outSR=102100&spatialRel=esriSpatialRelIntersects"
+	# Properties:
+	# Island, Type, Address, City, Zipcode, Name, Provider, Days_Open, Hours, Website
+	fix_islands = {
+		"Oahu" => "Oʻahu",
+		"Hawaii" => "Hawaiʻi",
+		"Kauai" => "Kauaʻi",
+		"Molokai" => "Molokaʻi",
+		"Lanai" => "Lānaʻi"
+	}
+
+	vaccine_response = HTTParty.get(vaccine_geojson_url)
+	vaccine_data = JSON.parse(vaccine_response.body, symbolize_names: true)
+	puts "Count: #{vaccine_data[:features].count}"
+	vaccine_data[:features].each do |feature|
+		properties = feature[:properties]
+		final_row = {
+			"Name": properties[:Name],
+			"Expiration date": "",
+			"Description": "Schedule: #{properties[:Days_Open]}. Hours: #{properties[:Hours]}. Provider: #{properties[:Provider]}. Type: #{properties[:Type]}.",
+			"Phone": "",
+			"URL": properties[:Website],
+			"Island": fix_islands[properties[:Island]],
+			"Address": "#{properties[:Address]}, #{properties[:City]}, HI, #{properties[:Zipcode]}",
+			"Coordinates": feature[:geometry][:coordinates]
+		}
+		pp final_row
+		all_vaccines_data << final_row
+	end
+
+	puts "Starting testing_popup_geojson_url"
+	testing_popup_geojson_url = "https://services.arcgis.com/HQ0xoN0EzDPBOEci/arcgis/rest/services/Temporary_C19_Testing/FeatureServer/0/query?f=geojson&cacheHint=true&maxRecordCountFactor=4&resultOffset=0&resultRecordCount=8000&where=USER_Hours%20%3C%3E%20%27Not%20available%27&orderByFields=ObjectID&outFields=*&outSR=102100&spatialRel=esriSpatialRelIntersects"
+	# Properties:
+	# USER_PlaceN, USER_Street, USER_City, USER_Zip, USER_Hours, USER_Register (URL), USER_Instruct
+	testing_popup_response = HTTParty.get(testing_popup_geojson_url)
+	testing_popup_data = JSON.parse(testing_popup_response.body, symbolize_names: true)
+	puts "Count: #{testing_popup_data[:features].count}"
+	testing_popup_data[:features].each do |feature|
+		properties = feature[:properties]
+		final_row = {
+			"Name": properties[:USER_PlaceN],
+			"Expiration date": "",
+			"Description": "Popup testing site. #{properties[:USER_Instruct]} Schedule: #{properties[:USER_Hours]}.",
+			"Phone": "",
+			"URL": properties[:USER_Register],
+			"Island": "",
+			"Address": "#{properties[:USER_Street]}, #{properties[:USER_City]}, HI, #{properties[:USER_Zip]}",
+			"Coordinates": feature[:geometry][:coordinates]
+		}
+		all_testing_data << final_row
+	end
+
+	puts "Starting testing_clinics_geojson_url"
+	testing_clinics_geojson_url = "https://services.arcgis.com/HQ0xoN0EzDPBOEci/arcgis/rest/services/COVID19_Screening_Clinics_View/FeatureServer/0/query?f=geojson&cacheHint=true&maxRecordCountFactor=4&resultOffset=0&resultRecordCount=8000&where=(FacT%20%3D%20%27Screening%20Clinic%27)%20OR%20(FacT%20%3D%20%27Temp%20Testing%27)&orderByFields=OBJECTID&outFields=*&outSR=102100&spatialRel=esriSpatialRelIntersects"
+	# Properties:
+	# FacName, Place_addr, Phone_1, Hours, Days, Directions (URL), Instru
+	testing_clinics_response = HTTParty.get(testing_clinics_geojson_url)
+	testing_clinics_data = JSON.parse(testing_clinics_response.body, symbolize_names: true)
+	puts "Count: #{testing_clinics_data[:features].count}"
+	testing_clinics_data[:features].each do |feature|
+		properties = feature[:properties]
+		final_row = {
+			"Name": properties[:FacName],
+			"Expiration date": "",
+			"Description": "#{properties[:Instru]} Schedule: #{properties[:Days]}. Hours: #{properties[:Hours]}",
+			"Phone": properties[:Phone_1],
+			"URL": properties[:Directions],
+			"Island": "",
+			"Address": check_address(properties[:Place_addr]),
+			"Coordinates": feature[:geometry][:coordinates]
+		}
+		all_testing_data << final_row
+	end
+
+	s3 = Aws::S3::Resource.new(region: ENV['S3_REGION'])
+	s3_vaccines_object = s3.bucket(ENV['S3_BUCKET']).object("covid_scraped_vaccines.json")
+	s3_testing_object = s3.bucket(ENV['S3_BUCKET']).object("covid_scraped_testing.json")
+
+	date_str = (Time.now.utc-10*60*60).strftime("%B %-d, %Y")
+	all_testing = {
+		data: all_testing_data,
+		lastUpdated: date_str
+	}
+	all_vaccines = {
+		data: all_vaccines_data,
+		lastUpdated: date_str	
+	}
+
+	s3_vaccines_object.put(body: all_vaccines.to_json)
+	s3_testing_object.put(body: all_testing.to_json)
+
+	puts "Saved data."
+end
+
+# save_data
+hawaiicovid9_data

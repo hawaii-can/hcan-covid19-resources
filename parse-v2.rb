@@ -31,17 +31,26 @@ def run(location_csv_url)
 		current_locations = rows.map do |row|
 			# Generate address IDs
 			address = row[:address]
+			address_id = ""
+			if !address.nil?
+				address_id = address.downcase.gsub(/\W/,'')
+			end
 
 			{
-				address_id: address.downcase.gsub(/\W/,''),
+				address_id: address_id,
 				address_str: address
 			}
 		end
 
 		scraped_locations = scraped_vaccines[:data].concat(scraped_testing[:data]).map do |row|
 			address = row[:Address]
+			address_id = ""
+			if !address.nil?
+				address_id = address.downcase.gsub(/\W/,'')
+			end
+
 			{
-				address_id: address.downcase.gsub(/\W/,''),
+				address_id: address_id,
 				address_str: address
 			}
 		end.reject{|row| row[:address_id] == "" }
