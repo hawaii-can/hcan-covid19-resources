@@ -31,35 +31,18 @@ $(function() {
 	var scrapedVaccineURL = "https://hcan-public-us-west.s3.amazonaws.com/covid_scraped_vaccines.json";
 	var scrapedTestingURL = "https://hcan-public-us-west.s3.amazonaws.com/covid_scraped_testing.json";
 
-	Papa.parse(vaccineURL, {
+	Papa.parse(housingFinancialURL, {
 		download: true,
 		header: true,
-		complete: function(vaccineData) {
-			Papa.parse(testingURL, {
-				download: true,
-				header: true,
-				complete: function(testingData) {
-					Papa.parse(housingFinancialURL, {
-						download: true,
-						header: true,
-						complete: function(housingFinancialData) {
-
-							$.getJSON(scrapedVaccineURL, function(scrapedVaccineData) {
-								$.getJSON(scrapedTestingURL, function(scrapedTestingData) {
-									init({
-										vaccineData: vaccineData.data,
-										testingData: testingData.data,
-										housingFinancialData: housingFinancialData.data,
-										scrapedVaccineData: scrapedVaccineData,
-										scrapedTestingData: scrapedTestingData
-									});
-								});
-							});
-
-						
-						}
+		complete: function(housingFinancialData) {
+			$.getJSON(scrapedVaccineURL, function(scrapedVaccineData) {
+				$.getJSON(scrapedTestingURL, function(scrapedTestingData) {
+					init({
+						housingFinancialData: housingFinancialData.data,
+						scrapedVaccineData: scrapedVaccineData,
+						scrapedTestingData: scrapedTestingData
 					});
-				}
+				});
 			});
 		}
 	});
@@ -90,12 +73,12 @@ $(function() {
 		var scrapedVaccineData = args.scrapedVaccineData;
 		var scrapedTestingData = args.scrapedTestingData;
 
-		console.log(vaccineData);
 		console.log(scrapedVaccineData.data);
+		// console.log(scrapedTestingData.data);
 
 		// Reassign old variables
-		var locationData = vaccineData;
-		var foodData = testingData;
+		var locationData = scrapedVaccineData.data;
+		var foodData = scrapedTestingData.data;
 		var onlineData = housingFinancialData;
 
 		// console.log(data);
@@ -115,7 +98,11 @@ $(function() {
 		var onlineCategories = createCategories(onlineCategoriesRaw, "Everything", "#category-list-online");
 
 		// Add unique locations as buttons.
-		var onlyLocations = _(locationData).map(function(val) { return val.Island.trim()});
+		var onlyLocations = _(locationData).map(function(val) { 
+			if (val.Island !== null) {
+				return val.Island.trim();	
+			}
+		});
 		var onlyFoodLocations = _(foodData).map(function(val) { return val.Island.trim()});
 		var combinedLocations = onlyLocations.concat(onlyFoodLocations);
 		var locations = createLocations(combinedLocations, "Everywhere", "Multiple Islands");
@@ -161,9 +148,9 @@ $(function() {
 				}
 				// Render rows
 				renderRows(locationData, "in-person", true, "#list .only-in-person", undefined, "Vaccines");
-				renderRows(scrapedVaccineData.data, "in-person", true, "#list .only-in-person", undefined, "Vaccines");
+				// renderRows(scrapedVaccineData.data, "in-person", true, "#list .only-in-person", undefined, "Vaccines");
 				renderRows(foodData, "in-person-food", true, "#list .only-in-person", undefined, "Testing");
-				renderRows(scrapedTestingData.data, "in-person-food", true, "#list .only-in-person", undefined, "Testing");
+				// renderRows(scrapedTestingData.data, "in-person-food", true, "#list .only-in-person", undefined, "Testing");
 				renderRows(onlineData, "online", false, "#list-financial-housing");
 
 				// Assign colors
@@ -226,7 +213,7 @@ $(function() {
 				return;
 			}
 
-			if (usingLocation) {
+			if (usingLocation && row.Address !== null) {
 				addressID = row.Address.toLowerCase().replace(/[^a-z0-9_]/g, "");
 
 				if (markers[addressID] !== undefined) {
