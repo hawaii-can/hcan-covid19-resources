@@ -152,8 +152,8 @@ $(function() {
 				return provider.Avail5to11;
 			});
 
-			renderRows(vaccines18plus, "vax", true, "#list .only-in-person", undefined, "Vaccines (Ages 18+)");
-			renderRows(vaccines5plus, "vax", true, "#list .only-in-person", undefined, "Vaccines (Ages 5+)");
+			renderRows(vaccines18plus, "vax18plus", true, "#list .only-in-person", undefined, "Vaccines (Ages 18+)");
+			renderRows(vaccines5plus, "vax5plus", true, "#list .only-in-person", undefined, "Vaccines (Ages 5+)");
 			renderRows(scrapedTestingData.data, "testing", true, "#list .only-in-person", undefined, "Testing");
 			
 			renderRows(onlineData, "online", false, "#list-financial-housing");
