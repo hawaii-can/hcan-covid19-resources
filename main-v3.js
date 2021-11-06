@@ -79,104 +79,110 @@ $(function() {
 		var housingFinancialData = args.housingFinancialData;
 		var scrapedVaccineData = args.scrapedVaccineData;
 		var scrapedTestingData = args.scrapedTestingData;
+		var geoData = args.geoData;
 
 		console.log(scrapedVaccineData.data);
 		// console.log(scrapedTestingData.data);
 
 		// Fix:
 		// Reassign old variables
-		var locationData = scrapedVaccineData.data;
-		var foodData = scrapedTestingData.data;
 		var onlineData = housingFinancialData;
 
-		var categories = createCategories(["Vaccines (All ages)", "Vaccines (5-11)", "Testing"], "Everything", "#category-list-in-person");
+		var categories = createCategories(["Vaccines (Ages 5+)", "Vaccines (Ages 18+)", "Testing"], "Everything", "#category-list-in-person");
 
 		// --- Online categories.
 		var onlineCategoriesRaw = _(onlineData).map(function(val) { return val.Category.trim()});
 		var onlineCategories = createCategories(onlineCategoriesRaw, "Everything", "#category-list-online");
 
 		// Add unique locations as buttons.
-		var onlyLocations = _(locationData).map(function(val) { 
+		var onlyVaxLocations = _(scrapedVaccineData.data).map(function(val) { 
 			if (val.Island !== null) {
 				return val.Island.trim();	
 			}
 		});
-		var onlyFoodLocations = _(foodData).map(function(val) { return val.Island.trim()});
-		var combinedLocations = onlyLocations.concat(onlyFoodLocations);
+		var onlyTestLocations = _(scrapedTestingData.data).map(function(val) { return val.Island.trim()});
+		var combinedLocations = onlyVaxLocations.concat(onlyTestLocations);
 		var locations = createLocations(combinedLocations, "Everywhere", "Multiple Islands");
 
 		// Get address lat/lngs
-		$.getJSON("https://hcan-public-us-west.s3.amazonaws.com/covid_resource_locations.json", function(data) {
-			// console.log(data);
-			_(data).each(function(location) {
-				if (location != null) {
-					var icon =  L.divIcon({
-						className: 'marker-icon',
-						html: '<i class="fas fa-map-pin fa-3x"></i>',
-						iconSize: [20,36],
-						iconAnchor: [10,36]
-					});
+		// console.log(data);
+		_(geoData).each(function(location) {
+			if (location != null) {
+				var icon =  L.divIcon({
+					className: 'marker-icon',
+					html: '<i class="fas fa-map-pin fa-3x"></i>',
+					iconSize: [20,36],
+					iconAnchor: [10,36]
+				});
 
-					var marker = L.marker([location.lat, location.lng],{
-						icon: icon
-					});
-					markers[location.address_id] = {
-						marker: marker
-					}					
+				var marker = L.marker([location.lat, location.lng],{
+					icon: icon
+				});
+				markers[location.address_id] = {
+					marker: marker
+				}					
+			}
+		});
+		// console.log(markers);
+
+		loadEnglish = function(needsReset) {
+			if (needsReset) {
+				console.log("Need to fix this");
+				// $('#list .only-in-person, #list .only-online, #category-list .only-in-person, #category-list .only-online, #location-list-inside').empty();
+
+				// _(markers).each(function(value, key, list) {
+				// 	map.removeLayer(value.marker);
+				// });
+
+				// $('.translatable').each(function(){
+				// 	var text = $(this).data('original');
+				// 	$(this).text(text);
+				// });
+
+				// categories = createCategories(combinedCategories, "Everything", "#category-list-in-person");
+				// onlineCategories = createCategories(onlineCategoriesRaw, "Everything", "#category-list-online");
+				// locations = createLocations(combinedLocations, "Everywhere", "Multiple Islands");
+			}
+
+			// Render rows
+			vaccines18plus = _(scrapedVaccineData.data).filter(function(provider) {
+				return !provider.Avail5to11;
+			});
+			vaccines5plus = _(scrapedVaccineData.data).filter(function(provider) {
+				return provider.Avail5to11;
+			});
+
+			renderRows(vaccines18plus, "vax", true, "#list .only-in-person", undefined, "Vaccines (Ages 18+)");
+			renderRows(vaccines5plus, "vax", true, "#list .only-in-person", undefined, "Vaccines (Ages 5+)");
+			renderRows(scrapedTestingData.data, "testing", true, "#list .only-in-person", undefined, "Testing");
+			
+			renderRows(onlineData, "online", false, "#list-financial-housing");
+
+			// Assign colors
+			assignCategoryColors([categories, onlineCategories], "Everything");
+
+			updateFilter(true);
+			$('.loading').slideUp(200);
+			$('#list-inside').slideDown(200);	
+
+			$("#lang-en").addClass('lang-active');
+			// updateLanguageSwitcher('en', false);
+		}
+
+		if (langRe.test(location.hash)) {
+			// Try other language
+			tryOtherLanguage = true;
+			lang = location.hash.match(langRe)[1];
+			getLanguage(lang, function(present) {
+				if (!present) {
+					loadEnglish();
 				}
 			});
-			// console.log(markers);
-
-			loadEnglish = function(needsReset) {
-				if (needsReset) {
-					$('#list .only-in-person, #list .only-online, #category-list .only-in-person, #category-list .only-online, #location-list-inside').empty();
-
-					_(markers).each(function(value, key, list) {
-						map.removeLayer(value.marker);
-					});
-
-					$('.translatable').each(function(){
-						var text = $(this).data('original');
-						$(this).text(text);
-					});
-
-					categories = createCategories(combinedCategories, "Everything", "#category-list-in-person");
-					onlineCategories = createCategories(onlineCategoriesRaw, "Everything", "#category-list-online");
-					locations = createLocations(combinedLocations, "Everywhere", "Multiple Islands");
-				}
-				// Render rows
-				renderRows(locationData, "in-person", true, "#list .only-in-person", undefined, "Vaccines");
-				// renderRows(scrapedVaccineData.data, "in-person", true, "#list .only-in-person", undefined, "Vaccines");
-				renderRows(foodData, "in-person-food", true, "#list .only-in-person", undefined, "Testing");
-				// renderRows(scrapedTestingData.data, "in-person-food", true, "#list .only-in-person", undefined, "Testing");
-				renderRows(onlineData, "online", false, "#list-financial-housing");
-
-				// Assign colors
-				assignCategoryColors([categories, onlineCategories], "Everything");
-
-				updateFilter(true);
-				$('.loading').slideUp(200);
-				$('#list-inside').slideDown(200);	
-
-				$("#lang-en").addClass('lang-active');
-				// updateLanguageSwitcher('en', false);
-			}
-
-			if (langRe.test(location.hash)) {
-				// Try other language
-				tryOtherLanguage = true;
-				lang = location.hash.match(langRe)[1];
-				getLanguage(lang, function(present) {
-					if (!present) {
-						loadEnglish();
-					}
-				});
-			} else {
-				loadEnglish();
-			}
+		} else {
+			loadEnglish();
+		}
 
 
-		});
 
 		$("#last-updated-date").text(scrapedVaccineData.lastUpdated);
 
@@ -315,7 +321,7 @@ $(function() {
 	}
 
 	function createCategories(categoriesData, everythingText, selector) {
-		var categories = _(categoriesData).uniq().sort();
+		var categories = _(categoriesData).uniq();
 		categories.unshift(everythingText);
 
 		_(categories).each(function(category) {
