@@ -20,10 +20,19 @@ def vaccines_gov
 		"96813": [21.31, -157.86],
 		"96766": [21.96, -159.35]
 	}
+	all_vax_codes = {
+		"Pfizer-BioNTech (age 5-11)" => "25f1389c-5597-47cc-9a9d-3925d60d9c21",
+		"Moderna (age 18+)" => "779bfe52-0dd8-4023-a183-457eb100fccc",
+		"Pfizer-BioNTech (age 12+)" => "a84fb9ed-deb4-461c-b785-e17c782ef88b",
+		"Johnson & Johnson/Janssen (age 18+)" => "784db609-dc1f-45a5-bad6-8db02e79d44f"
+	}
+
+	# All vaccines
 	latlngs.each do |zip, latlng|
 		lat = latlng.first
 		lng = latlng.last
-		url = "https://api.us.castlighthealth.com/vaccine-finder/v1/provider-locations/search?medicationGuids=779bfe52-0dd8-4023-a183-457eb100fccc,a84fb9ed-deb4-461c-b785-e17c782ef88b,784db609-dc1f-45a5-bad6-8db02e79d44f&lat=#{lat}&long=#{lng}&radius=100&appointments=false"
+		vax_codes = all_vax_codes.values.join(",")
+		url = "https://api.us.castlighthealth.com/vaccine-finder/v1/provider-locations/search?medicationGuids=#{vax_codes}&lat=#{lat}&long=#{lng}&radius=100&appointments=false"
 
 		response = HTTParty.get(url,
 			headers:{ 'Content-Type' => 'application/json', 'Accept' => 'application/json'}
@@ -33,8 +42,24 @@ def vaccines_gov
 		all_providers.concat(providers)
 	end
 
-	all_providers = all_providers.uniq { |p| p[:guid] }
+	# Just kids 5-11
+	kids_providers = []
+	latlngs.each do |zip, latlng|
+		lat = latlng.first
+		lng = latlng.last
+		vax_codes = all_vax_codes["Pfizer-BioNTech (age 5-11)"]
+		url = "https://api.us.castlighthealth.com/vaccine-finder/v1/provider-locations/search?medicationGuids=#{vax_codes}&lat=#{lat}&long=#{lng}&radius=100&appointments=false"
 
+		response = HTTParty.get(url,
+			headers:{ 'Content-Type' => 'application/json', 'Accept' => 'application/json'}
+		)
+		results_list = JSON.parse(response.body, symbolize_names: true)
+		providers = results_list[:providers]
+		kids_providers.concat(providers)
+	end
+	kids_guids = kids_providers.map{|p| p[:guid]}
+
+	all_providers = all_providers.uniq { |p| p[:guid] }
 	all_providers.each do |provider|
 		provider_url = "https://www.vaccines.gov/provider/?id=#{provider[:guid]}&medications=779bfe52-0dd8-4023-a183-457eb100fccc%2Ca84fb9ed-deb4-461c-b785-e17c782ef88b%2C784db609-dc1f-45a5-bad6-8db02e79d44f&radius=50&appointments=false"
 
@@ -54,7 +79,9 @@ def vaccines_gov
 			"Phone": provider[:phone],
 			"URL": provider_url,
 			"Island": "",
-			"Address": "#{provider[:address1]} #{provider[:address2]}, #{provider[:city]}, #{provider[:state]}, #{provider[:zip]}"
+			"Address": "#{provider[:address1]} #{provider[:address2]}, #{provider[:city]}, #{provider[:state]}, #{provider[:zip]}",
+			"Avail5to11": kids_guids.include?(provider[:guid]),
+			"Coordinates": [provider[:lat], provider[:long]]
 		}
 		final_rows << final_row
 	end
@@ -241,12 +268,12 @@ def hawaiicovid9_data
 		final_row = {
 			"Name": properties[:Name],
 			"Expiration date": "",
-			"Description": "Schedule: #{properties[:Days_Open]}. Hours: #{properties[:Hours]}. Provider: #{properties[:Provider]}. Type: #{properties[:Type]}.",
+			"Description": "Schedule: #{properties[:Days_Open]}. Hours: #{properties[:Hours]}. Provider: #{properties[:Provider]}. Type: #{properties[:Type]}. Listed on HawaiiCOVID19.com.",
 			"Phone": "",
 			"URL": properties[:Website],
 			"Island": fix_islands[properties[:Island]],
 			"Address": "#{properties[:Address]}, #{properties[:City]}, HI, #{properties[:Zipcode]}",
-			"Coordinates": feature[:geometry][:coordinates],
+			"RawCoordinates": feature[:geometry][:coordinates],
 			"Avail5to11": avail5to11
 		}
 		all_vaccines_data << final_row
@@ -265,12 +292,12 @@ def hawaiicovid9_data
 		final_row = {
 			"Name": properties[:USER_PlaceN],
 			"Expiration date": "",
-			"Description": "Popup testing site. #{properties[:USER_Instruct]} Schedule: #{properties[:USER_Hours]}.",
+			"Description": "Popup testing site. #{properties[:USER_Instruct]} Schedule: #{properties[:USER_Hours]}. Listed on HawaiiCOVID19.com.",
 			"Phone": "",
 			"URL": properties[:USER_Register],
 			"Island": "",
 			"Address": "#{properties[:USER_Street]}, #{properties[:USER_City]}, HI, #{properties[:USER_Zip]}",
-			"Coordinates": feature[:geometry][:coordinates]
+			"RawCoordinates": feature[:geometry][:coordinates]
 		}
 		all_testing_data << final_row
 	end
@@ -287,12 +314,12 @@ def hawaiicovid9_data
 		final_row = {
 			"Name": properties[:FacName],
 			"Expiration date": "",
-			"Description": "#{properties[:Instru]} Schedule: #{properties[:Days]}. Hours: #{properties[:Hours]}",
+			"Description": "#{properties[:Instru]} Schedule: #{properties[:Days]}. Hours: #{properties[:Hours]}. Listed on HawaiiCOVID19.com.",
 			"Phone": properties[:Phone_1],
 			"URL": properties[:Directions],
 			"Island": "",
 			"Address": check_address(properties[:Place_addr]),
-			"Coordinates": feature[:geometry][:coordinates]
+			"RawCoordinates": feature[:geometry][:coordinates]
 		}
 		all_testing_data << final_row
 	end
@@ -307,7 +334,7 @@ def hawaiicovid9_data
 		lastUpdated: date_str
 	}
 	all_vaccines = {
-		data: all_vaccines_data,
+		data: [all_vaccines_data, vaccines_gov].flatten,
 		lastUpdated: date_str	
 	}
 
