@@ -54,23 +54,23 @@ $(function() {
 			});
 	}
 
-	var map = L.map('map', {
-		center: [21.311389, -157.796389],
-		zoom: defaultZoom
-	});
-
-	if (map && navigator.geolocation) {
-		$('#map-locate').data('status','active').show();
+	if ( $("#map").length > 0 ) {
+		var map = L.map('map', {
+			center: [21.311389, -157.796389],
+			zoom: defaultZoom
+		});
+		if (map && navigator.geolocation) {
+			$('#map-locate').data('status','active').show();
+		}
+		L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+		    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+		    maxZoom: 18,
+		    id: 'mapbox/streets-v11',
+		    tileSize: 512,
+		    zoomOffset: -1,
+		    accessToken: 'pk.eyJ1IjoicmNhdGFsYW5pLWhjYW4iLCJhIjoiY2s4NzJvM3piMGN0aDNsbmh3bGJ6bWJyNCJ9.RUI7xHjaMpxI4v-U0qKFBw'
+		}).addTo(map);
 	}
-
-	L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-	    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-	    maxZoom: 18,
-	    id: 'mapbox/streets-v11',
-	    tileSize: 512,
-	    zoomOffset: -1,
-	    accessToken: 'pk.eyJ1IjoicmNhdGFsYW5pLWhjYW4iLCJhIjoiY2s4NzJvM3piMGN0aDNsbmh3bGJ6bWJyNCJ9.RUI7xHjaMpxI4v-U0qKFBw'
-	}).addTo(map);
 
 	function init(args) {
 
@@ -81,28 +81,32 @@ $(function() {
 		var scrapedTestingData = args.scrapedTestingData;
 		var geoData = args.geoData;
 
-		console.log(scrapedVaccineData.data);
+		// console.log(scrapedVaccineData.data);
 		// console.log(scrapedTestingData.data);
 
 		// Fix:
 		// Reassign old variables
-		var onlineData = housingFinancialData;
 
 		var categories = createCategories(["Vaccines (Ages 5+)", "Vaccines (Ages 18+)", "Testing"], "Everything", "#category-list-in-person");
+		var onlineCategories = [];
 
-		// --- Online categories.
-		var onlineCategoriesRaw = _(onlineData).map(function(val) { return val.Category.trim()});
-		var onlineCategories = createCategories(onlineCategoriesRaw, "Everything", "#category-list-online");
-
+		// --- Online categories
+		if (housingFinancialData !== undefined) {
+			var onlineCategoriesRaw = _(housingFinancialData.data).map(function(val) { return val.Category.trim()});
+			onlineCategories = createCategories(onlineCategoriesRaw, "Everything", "#category-list-online");	
+		}
+		
 		// Add unique locations as buttons.
-		var onlyVaxLocations = _(scrapedVaccineData.data).map(function(val) { 
-			if (val.Island !== null) {
-				return val.Island.trim();	
-			}
-		});
-		var onlyTestLocations = _(scrapedTestingData.data).map(function(val) { return val.Island.trim()});
-		var combinedLocations = onlyVaxLocations.concat(onlyTestLocations);
-		var locations = createLocations(combinedLocations, "Everywhere", "Multiple Islands");
+		if (scrapedVaccineData !== undefined) {
+			var onlyVaxLocations = _(scrapedVaccineData.data).map(function(val) { 
+				if (val.Island !== null) {
+					return val.Island.trim();	
+				}
+			});
+			var onlyTestLocations = _(scrapedTestingData.data).map(function(val) { return val.Island.trim()});
+			var combinedLocations = onlyVaxLocations.concat(onlyTestLocations);
+			var locations = createLocations(combinedLocations, "Everywhere", "Multiple Islands");	
+		}
 
 		// Get address lat/lngs
 		// console.log(data);
@@ -145,18 +149,23 @@ $(function() {
 			}
 
 			// Render rows
-			vaccines18plus = _(scrapedVaccineData.data).filter(function(provider) {
-				return !provider.Avail5to11;
-			});
-			vaccines5plus = _(scrapedVaccineData.data).filter(function(provider) {
-				return provider.Avail5to11;
-			});
+			if (scrapedVaccineData !== undefined) {
+				vaccines18plus = _(scrapedVaccineData.data).filter(function(provider) {
+					return !provider.Avail5to11;
+				});
+				vaccines5plus = _(scrapedVaccineData.data).filter(function(provider) {
+					return provider.Avail5to11;
+				});
 
-			renderRows(vaccines18plus, "vax18plus", true, "#list .only-in-person", undefined, "Vaccines (Ages 18+)");
-			renderRows(vaccines5plus, "vax5plus", true, "#list .only-in-person", undefined, "Vaccines (Ages 5+)");
-			renderRows(scrapedTestingData.data, "testing", true, "#list .only-in-person", undefined, "Testing");
+				renderRows(vaccines18plus, "vax18plus", true, "#list .only-in-person", undefined, "Vaccines (Ages 18+)");
+				renderRows(vaccines5plus, "vax5plus", true, "#list .only-in-person", undefined, "Vaccines (Ages 5+)");
+				renderRows(scrapedTestingData.data, "testing", true, "#list .only-in-person", undefined, "Testing");
+			}
 			
-			renderRows(onlineData, "online", false, "#list-financial-housing");
+			if (housingFinancialData !== undefined) {
+				renderRows(housingFinancialData.data, "online", false, "#list-financial-housing");	
+			}
+			
 
 			// Assign colors
 			assignCategoryColors([categories, onlineCategories], "Everything");
@@ -183,8 +192,9 @@ $(function() {
 		}
 
 
-
-		$("#last-updated-date").text(scrapedVaccineData.lastUpdated);
+		if ( $("#last-updated-date").length > 0 ) {
+			$("#last-updated-date").text(scrapedVaccineData.lastUpdated);
+		}
 
 	}
 
@@ -338,7 +348,7 @@ $(function() {
 
 	function assignCategoryColors(categoriesArr,everythingText) {
 		var allCategories = _.chain(categoriesArr).flatten().uniq().filter(function(val){ return val != everythingText }).value().sort();
-		var colors = ["#e66101", "#5e3c99", "#d01c8b"];
+		var colors = ["#e66101", "#5e3c99", "#d01c8b", "#018571"];
 
 		_(allCategories).each(function(category, index) {
 			var color = colors[index];
@@ -449,7 +459,10 @@ $(function() {
 			var bounds = _(selectedMarkers).map(function(m) { return m.marker.getLatLng() });
 			map.flyToBounds(bounds, {duration: 0.75});
 		} else {
-			map.flyTo([21.311389, -157.796389], defaultZoom, {duration: 0.75});	
+			if (map !== undefined) {
+				map.flyTo([21.311389, -157.796389], defaultZoom, {duration: 0.75});		
+			}
+			
 		}
 
 		var scrollTop = 0;
