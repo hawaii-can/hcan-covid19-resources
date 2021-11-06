@@ -222,7 +222,8 @@ def hawaiicovid9_data
 	puts "Starting vaccine_geojson_url"
 	vaccine_geojson_url = "https://services.arcgis.com/HQ0xoN0EzDPBOEci/arcgis/rest/services/20210901_Vaccination_Campaign_Public_View/FeatureServer/0/query?f=geojson&cacheHint=true&maxRecordCountFactor=4&resultOffset=0&resultRecordCount=8000&where=(Status%20%3D%20%27Confirmed%27)%20OR%20(Status%20%3D%20%27Ongoing%20Provider%27)&orderByFields=OBJECTID&outFields=*&outSR=102100&spatialRel=esriSpatialRelIntersects"
 	# Properties:
-	# Island, Type, Address, City, Zipcode, Name, Provider, Days_Open, Hours, Website
+	# Island, Type, Address, City, Zipcode, Name, Provider, Days_Open, Hours, Website,
+	# 	Notes ("Offering Vaccine to the 5-11 Population")
 	fix_islands = {
 		"Oahu" => "Oʻahu",
 		"Hawaii" => "Hawaiʻi",
@@ -236,6 +237,7 @@ def hawaiicovid9_data
 	puts "Count: #{vaccine_data[:features].count}"
 	vaccine_data[:features].each do |feature|
 		properties = feature[:properties]
+		avail5to11 = properties[:Notes] == "Offering Vaccine to the 5-11 Population"
 		final_row = {
 			"Name": properties[:Name],
 			"Expiration date": "",
@@ -244,11 +246,12 @@ def hawaiicovid9_data
 			"URL": properties[:Website],
 			"Island": fix_islands[properties[:Island]],
 			"Address": "#{properties[:Address]}, #{properties[:City]}, HI, #{properties[:Zipcode]}",
-			"Coordinates": feature[:geometry][:coordinates]
+			"Coordinates": feature[:geometry][:coordinates],
+			"Avail5to11": avail5to11
 		}
-		pp final_row
 		all_vaccines_data << final_row
 	end
+
 
 	puts "Starting testing_popup_geojson_url"
 	testing_popup_geojson_url = "https://services.arcgis.com/HQ0xoN0EzDPBOEci/arcgis/rest/services/Temporary_C19_Testing/FeatureServer/0/query?f=geojson&cacheHint=true&maxRecordCountFactor=4&resultOffset=0&resultRecordCount=8000&where=USER_Hours%20%3C%3E%20%27Not%20available%27&orderByFields=ObjectID&outFields=*&outSR=102100&spatialRel=esriSpatialRelIntersects"
