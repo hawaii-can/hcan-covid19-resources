@@ -1,8 +1,11 @@
 require 'dotenv/load'
-require 'httparty'
-require 'cgi'
-require 'json'
 require 'aws-sdk-s3'
+require 'cgi'
+require 'httparty'
+require 'json'
+require 'mapbox-sdk'
+require 'open-uri'
+require 'smarter_csv'
 
 # Return array of hashes with keys:
 # :name, :expiration_date, :description, :phone, :url, :island, :address
@@ -243,8 +246,20 @@ def check_address(str)
 end
 
 def hawaiicovid9_data
+	# Setup
+	Mapbox.access_token = ENV['MAPBOX_KEY']
+	s3 = Aws::S3::Resource.new(region: ENV['S3_REGION'])
+
+	# Download existing parsed locations
+	s3_locations_object = s3.bucket(ENV['S3_BUCKET']).object("covid_resource_locations.json")
+	s3_current_locations = JSON.parse(s3_locations_object.get.body.read, symbolize_names: true)
+	current_address_ids = s3_current_locations.select{|l| !l.nil?}.map{|r| r[:address_id]}
+
+	# Setup final locations
 	all_vaccines_data = []
 	all_testing_data = []
+
+	new_locations = []
 
 	puts "Starting vaccine_geojson_url"
 	vaccine_geojson_url = "https://services.arcgis.com/HQ0xoN0EzDPBOEci/arcgis/rest/services/20210901_Vaccination_Campaign_Public_View/FeatureServer/0/query?f=geojson&cacheHint=true&maxRecordCountFactor=4&resultOffset=0&resultRecordCount=8000&where=(Status%20%3D%20%27Confirmed%27)%20OR%20(Status%20%3D%20%27Ongoing%20Provider%27)&orderByFields=OBJECTID&outFields=*&outSR=102100&spatialRel=esriSpatialRelIntersects"
@@ -265,6 +280,12 @@ def hawaiicovid9_data
 	vaccine_data[:features].each do |feature|
 		properties = feature[:properties]
 		avail5to11 = properties[:Notes] == "Offering Vaccine to the 5-11 Population"
+		
+		address = "#{properties[:Address]}, #{properties[:City]}, HI, #{properties[:Zipcode]}"
+		coordinates_data = get_coordinates(address, s3_current_locations)
+		coordinates = coordinates_data[:coordinates]
+		new_locations << coordinates_data[:new_location] if !coordinates_data[:new_location].nil?
+
 		final_row = {
 			"Name": properties[:Name],
 			"Expiration date": "",
@@ -272,8 +293,9 @@ def hawaiicovid9_data
 			"Phone": "",
 			"URL": properties[:Website],
 			"Island": fix_islands[properties[:Island]],
-			"Address": "#{properties[:Address]}, #{properties[:City]}, HI, #{properties[:Zipcode]}",
+			"Address": address,
 			"RawCoordinates": feature[:geometry][:coordinates],
+			"Coordinates": coordinates,
 			"Avail5to11": avail5to11
 		}
 		all_vaccines_data << final_row
@@ -289,6 +311,12 @@ def hawaiicovid9_data
 	puts "Count: #{testing_popup_data[:features].count}"
 	testing_popup_data[:features].each do |feature|
 		properties = feature[:properties]
+
+		address = "#{properties[:USER_Street]}, #{properties[:USER_City]}, HI, #{properties[:USER_Zip]}"
+		coordinates_data = get_coordinates(address, s3_current_locations)
+		coordinates = coordinates_data[:coordinates]
+		new_locations << coordinates_data[:new_location] if !coordinates_data[:new_location].nil?
+
 		final_row = {
 			"Name": properties[:USER_PlaceN],
 			"Expiration date": "",
@@ -296,8 +324,9 @@ def hawaiicovid9_data
 			"Phone": "",
 			"URL": properties[:USER_Register],
 			"Island": "",
-			"Address": "#{properties[:USER_Street]}, #{properties[:USER_City]}, HI, #{properties[:USER_Zip]}",
-			"RawCoordinates": feature[:geometry][:coordinates]
+			"Address": address,
+			"RawCoordinates": feature[:geometry][:coordinates],
+			"Coordinates": coordinates
 		}
 		all_testing_data << final_row
 	end
@@ -311,6 +340,12 @@ def hawaiicovid9_data
 	puts "Count: #{testing_clinics_data[:features].count}"
 	testing_clinics_data[:features].each do |feature|
 		properties = feature[:properties]
+
+		address = check_address(properties[:Place_addr])
+		coordinates_data = get_coordinates(address, s3_current_locations)
+		coordinates = coordinates_data[:coordinates]
+		new_locations << coordinates_data[:new_location] if !coordinates_data[:new_location].nil?
+
 		final_row = {
 			"Name": properties[:FacName],
 			"Expiration date": "",
@@ -318,8 +353,9 @@ def hawaiicovid9_data
 			"Phone": properties[:Phone_1],
 			"URL": properties[:Directions],
 			"Island": "",
-			"Address": check_address(properties[:Place_addr]),
-			"RawCoordinates": feature[:geometry][:coordinates]
+			"Address": address,
+			"RawCoordinates": feature[:geometry][:coordinates],
+			"Coordinates": coordinates
 		}
 		all_testing_data << final_row
 	end
@@ -341,7 +377,43 @@ def hawaiicovid9_data
 	s3_vaccines_object.put(body: all_vaccines.to_json)
 	s3_testing_object.put(body: all_testing.to_json)
 
-	puts "Saved data."
+	puts "Saved scraped data."
+
+	if new_locations.any?
+		puts "New locations = #{new_locations}"
+		all_locations = s3_current_locations + new_locations
+		all_locations.select!{|l| !l.nil?}
+		s3_locations_object.put(body: all_locations.to_json)
+		puts "Saved new locations."
+	else
+		puts "No new locations."
+	end
+end
+
+def get_coordinates(address, s3_current_locations)
+	coordinates_data = {}
+	if !address.nil?
+		address_id = address.downcase.gsub(/\W/,'')
+		if existingLatLng = s3_current_locations.find{|loc| loc[:address_id] == address_id}
+			coordinates_data[:coordinates] = [existingLatLng[:lat], existingLatLng[:lng]]
+		else
+			new_location = geocode(address)
+			coordinates_data[:new_location] = new_location
+			coordinates_data[:coordinates] = [new_location[:lat], new_location[:lng]]
+		end
+	end
+	return coordinates_data
+end
+
+def geocode(address_str)
+	puts "geocoding #{address_str}"
+	begin
+		place = Mapbox::Geocoder.geocode_forward(address_str, limit: 1, country: 'US')
+		return place.first["features"].first["center"]
+	rescue StandardError => error
+		puts "Error: #{error.inspect}"
+		return nil
+	end
 end
 
 # save_data
