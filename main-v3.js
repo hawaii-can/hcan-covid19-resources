@@ -19,6 +19,7 @@ $(function() {
 	var successRe = /^\#success/;
 	var langRe = /lang-([a-zA-Z-]+)$/;
 
+	var map;
 
 	var housingFinancialURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm_HYq0rmBPR_Qc-M6F9IIJYTjv1aa4n-NRIodaVb4Jq64QVNeA89IPh80P_zbqQEDhcUB0Ab_Ju2Q/pub?gid=47580724&single=true&output=csv";
 	var scrapedVaccineURL = "https://hcan-public-us-west.s3.amazonaws.com/covid_scraped_vaccines.json";
@@ -57,7 +58,7 @@ $(function() {
 	}
 
 	if ( $("#map").length > 0 ) {
-		var map = L.map('map', {
+		map = L.map('map', {
 			center: [21.311389, -157.796389],
 			zoom: defaultZoom
 		});
@@ -528,13 +529,16 @@ $(function() {
 
 	function highlightMarker(marker) {
 		// console.log(marker);
+		var zoom = 15;
 
 		$('.selected-marker').removeClass('selected-marker');
 		$(marker._icon).addClass('selected-marker');
 
 		var id = $(marker._icon).attr('id');
 
-		map.flyTo(marker.getLatLng(), 13, {duration: 0.75});
+		if (map.getZoom() < zoom || !map.getBounds().contains(marker.getLatLng())) {
+			map.flyTo(marker.getLatLng(), zoom, {duration: 0.75});
+		}
 
 		var $row = $('.row:visible.' + id);
 		if ($row.length > 0) {
