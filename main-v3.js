@@ -548,9 +548,9 @@ $(function() {
 			// console.log($row.offset().top, $('#list-wrap').offset().top, $('#list-wrap').scrollTop(), $('#map-wrap-outer').scrollTop());
 			// console.log(scroll);
 
-			// if (windowWidth < 700) {
-			// 	scroll -= 300;
-			// }
+			if (windowWidth < 700) {
+				scroll -= $('#map-wrap-outer').scrollTop();
+			}
 
 			$('#map-wrap-outer, #list-wrap').animate({
 				scrollTop: scroll
