@@ -258,6 +258,7 @@ def hawaiicovid9_data
 	# Setup final locations
 	all_vaccines_data = []
 	all_testing_data = []
+	all_test_to_treat_data = []
 
 	new_locations = []
 
@@ -360,9 +361,38 @@ def hawaiicovid9_data
 		all_testing_data << final_row
 	end
 
+	puts "Starting test to treat"
+	test_to_treat_url = "https://healthdata.gov/resource/6m8a-tsjg.json?state=HI"
+	# https://healthdata.gov/Health/COVID-19-Test-to-Treat/6m8a-tsjg
+	test_to_treat_response = HTTParty.get(test_to_treat_url)
+	test_to_treat_data = JSON.parse(test_to_treat_response.body, symbolize_names: true)
+	puts "Count: #{testing_popup_data.count}"
+	test_to_treat_data.each do |location|
+		address = location.slice(:address1, :address2, :city, :state, :zip).join(", ")
+		coordinates_data = get_coordinates(address, s3_current_locations)
+		coordinates = coordinates_data[:coordinates]
+		new_locations << coordinates_data[:new_location] if !coordinates_data[:new_location].nil?
+
+		last_reported_date = Time.parse(location[:last_report_date]).strftime("%b %e, %Y")
+
+		final_row = {
+			"Name": location[:provider_name],
+			"Description": "Received an order of Paxlovid or Lagevrio (molnupiravir) in the last two months and/or have reported availability of the oral antiviral medications within the last two weeks. Last reported date: #{last_reported_date}. according to HealthData.gov.",
+			"Phone": "",
+			"URL": "",
+			"Island": "",
+			"Address": address,
+			"RawCoordinates": location[:geopoint][:coordinates],
+			"Coordinates": coordinates
+		}
+		all_test_to_treat_data << final_row
+	end
+
+
 	s3 = Aws::S3::Resource.new(region: ENV['S3_REGION'])
 	s3_vaccines_object = s3.bucket(ENV['S3_BUCKET']).object("covid_scraped_vaccines.json")
 	s3_testing_object = s3.bucket(ENV['S3_BUCKET']).object("covid_scraped_testing.json")
+	s3_test_to_treat_object = s3.bucket(ENV['S3_BUCKET']).object("covid_scraped_test_to_treat.json")
 
 	date_str = (Time.now.utc-10*60*60).strftime("%B %-d, %Y")
 	all_testing = {
@@ -373,9 +403,14 @@ def hawaiicovid9_data
 		data: [all_vaccines_data, vaccines_gov].flatten,
 		lastUpdated: date_str	
 	}
+	all_test_to_treat = {
+		data: all_test_to_treat_data,
+		lastUpdated: date_str
+	}
 
 	s3_vaccines_object.put(body: all_vaccines.to_json)
 	s3_testing_object.put(body: all_testing.to_json)
+	s3_test_to_treat_object.put(body: all_test_to_treat.json)
 
 	puts "Saved scraped data."
 
