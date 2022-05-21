@@ -241,18 +241,26 @@ $(function() {
 				if (markers[addressID] !== undefined) {
 					hasLocation = true;
 					var marker = markers[addressID].marker;
+
+					// map.eachLayer(function(layer) {
+					// 	if (layer instanceof L.Marker && layer.getLatLng() == marker.getLatLng()) {
+					// 		console.log(addressID, "same address");
+					// 	}
+					// })
+
 					marker.addTo(map).on('click', markerClick);
 
-					markers[addressID]['category'] = parameterize('category', category);
+					markers[addressID]['category'] ||= [];
+					markers[addressID]['category'].push(parameterize('category', category));
 					markers[addressID]['location'] = parameterize('location', row.Island);
 
 					$(marker._icon).addClass(parameterize('category', category));
 					$(marker._icon).addClass(parameterize('location', row.Island));
-					$(marker._icon).attr('id',rowID);
+					$(marker._icon).attr('id',addressID);
 				}
 			}
 
-			var classes = ['row'];
+			var classes = ['row', addressID];
 			if (category != "") {
 				classes.push(parameterize('category', category));
 			}
@@ -430,7 +438,7 @@ $(function() {
 			$('span.' + currentCategory).addClass('selected');
 			if (currentCategory != "category-everything") {
 				selectedClasses += "." + currentCategory;	
-				markerFilters['category'] = currentCategory;
+				// markerFilters['category'] = currentCategory;
 			}
 		}
 		if (currentLocation != "") {
@@ -461,11 +469,41 @@ $(function() {
 		$('.row.map-selected').removeClass('map-selected');
 
 		// Update markers
-		var selectedMarkers = _(markers).where(markerFilters);
+		var selectedMarkers = _.chain(markers)
+			.where(markerFilters)
+			.filter(function(m) {
+				if (currentCategory == "" || currentCategory == "category-everything") {
+					return true;
+				} else {
+					return _(m.category).contains(currentCategory);
+				}
+			})
+			.value();
 		// console.log(markers, markerFilters, selectedMarkers);
 		if (selectedMarkers != undefined && selectedMarkers.length > 0) {
 			var bounds = _(selectedMarkers).map(function(m) { return m.marker.getLatLng() });
 			map.flyToBounds(bounds, {duration: 0.75});
+
+			if (currentCategory != "" && currentCategory != "category-everything") {
+				var categoryColor = $(".category-label." + currentCategory).css("background-color");
+				_(selectedMarkers).each(function(m) {
+					var $icon = $(m.marker._icon);
+					$icon.css('color', categoryColor);
+				});
+
+				// This code removes `category-` classes and appends the current `category-` class
+				// But is unnecessary because color is assigned via `.css`
+				// _(selectedMarkers).each(function(m) {
+				// 	var $icon = $(m.marker._icon);
+				// 	console.log($icon);
+				// 	$icon.removeClass(function(index, className) {
+				// 		var classes = className.split(" ");
+				// 		var classesToRemove = _(classes).filter(function(c){ return c.indexOf("category") == 0 })
+				// 		return classesToRemove.join(" ");
+				// 	});
+				// 	$icon.addClass(currentCategory);
+				// });
+			}
 		} else {
 			if (map !== undefined) {
 				map.flyTo([21.311389, -157.796389], defaultZoom, {duration: 0.75});		
@@ -489,6 +527,8 @@ $(function() {
 	}
 
 	function highlightMarker(marker) {
+		// console.log(marker);
+
 		$('.selected-marker').removeClass('selected-marker');
 		$(marker._icon).addClass('selected-marker');
 
@@ -496,13 +536,13 @@ $(function() {
 
 		map.flyTo(marker.getLatLng(), 13, {duration: 0.75});
 
-		var $row = $('.row.' + id);
+		var $row = $('.row:visible.' + id);
 		if ($row.length > 0) {
 			$('.row.map-selected').removeClass('map-selected');
 			$row.addClass('map-selected');
 			var scroll = $row.offset().top - $('#list-wrap').offset().top + $('#list-wrap').scrollTop() + $('#map-wrap-outer').scrollTop();
-			console.log($row.offset().top, $('#list-wrap').offset().top, $('#list-wrap').scrollTop(), $('#map-wrap-outer').scrollTop());
-			console.log(scroll);
+			// console.log($row.offset().top, $('#list-wrap').offset().top, $('#list-wrap').scrollTop(), $('#map-wrap-outer').scrollTop());
+			// console.log(scroll);
 
 			// if (windowWidth < 700) {
 			// 	scroll -= 300;
