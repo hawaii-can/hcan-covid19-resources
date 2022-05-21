@@ -106,7 +106,11 @@ $(function() {
 					return val.Island.trim();	
 				}
 			});
-			var onlyTestLocations = _(scrapedTestingData.data).map(function(val) { return val.Island.trim()});
+			var onlyTestLocations = _(scrapedTestingData.data).map(function(val) {
+				if (val.Island !== null) {
+					return val.Island.trim();		
+				}
+			});
 			var combinedLocations = onlyVaxLocations.concat(onlyTestLocations);
 			var locations = createLocations(combinedLocations, "Everywhere", "Multiple Islands");	
 		}
