@@ -397,7 +397,12 @@ def get_coordinates(address, s3_current_locations)
 		if existingLatLng = s3_current_locations.find{|loc| loc[:address_id] == address_id}
 			coordinates_data[:coordinates] = [existingLatLng[:lat], existingLatLng[:lng]]
 		else
-			new_location = geocode(address)
+			lng_lat = geocode(address)
+			new_location = {
+				address_id: address_id,
+				lng: lng_lat.first,
+				lat: lng_lat.last
+			}
 			coordinates_data[:new_location] = new_location
 			coordinates_data[:coordinates] = [new_location[:lat], new_location[:lng]]
 		end
