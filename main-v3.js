@@ -23,6 +23,7 @@ $(function() {
 	var housingFinancialURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm_HYq0rmBPR_Qc-M6F9IIJYTjv1aa4n-NRIodaVb4Jq64QVNeA89IPh80P_zbqQEDhcUB0Ab_Ju2Q/pub?gid=47580724&single=true&output=csv";
 	var scrapedVaccineURL = "https://hcan-public-us-west.s3.amazonaws.com/covid_scraped_vaccines.json";
 	var scrapedTestingURL = "https://hcan-public-us-west.s3.amazonaws.com/covid_scraped_testing.json";
+	var testToTreatURL = "https://hcan-public-us-west.s3.amazonaws.com/covid_scraped_test_to_treat.json";
 	var geoURL = "https://hcan-public-us-west.s3.amazonaws.com/covid_resource_locations.json";
 
 	function getJSONPromise(url) {
@@ -46,10 +47,11 @@ $(function() {
 	}
 	if ( $("#map-wrap-outer").length > 0 ) {
 		// Get vaccines and testing
-		$.when( getJSONPromise(scrapedVaccineURL), getJSONPromise(scrapedTestingURL), getJSONPromise(geoURL) )
-			.done(function(scrapedVaccineData, scrapedTestingData, geoData) {
+		$.when( getJSONPromise(scrapedVaccineURL), getJSONPromise(scrapedTestingURL), getJSONPromise(testToTreatURL), getJSONPromise(geoURL) )
+			.done(function(scrapedVaccineData, scrapedTestingData, testToTreatData, geoData) {
 				init({scrapedVaccineData: scrapedVaccineData,
 					scrapedTestingData: scrapedTestingData,
+					testToTreatData: testToTreatData,
 					geoData: geoData});
 			});
 	}
@@ -79,6 +81,7 @@ $(function() {
 		var housingFinancialData = args.housingFinancialData;
 		var scrapedVaccineData = args.scrapedVaccineData;
 		var scrapedTestingData = args.scrapedTestingData;
+		var testToTreatData = args.testToTreatData;
 		var geoData = args.geoData;
 
 		// console.log(scrapedVaccineData.data);
@@ -87,7 +90,7 @@ $(function() {
 		// Fix:
 		// Reassign old variables
 
-		var categories = createCategories(["Vaccines (Ages 5+)", "Vaccines (Ages 18+)", "Testing"], "Everything", "#category-list-in-person");
+		var categories = createCategories(["Vaccines (Ages 5+)", "Vaccines (Ages 18+)", "Testing", "Treatments"], "Everything", "#category-list-in-person");
 		var onlineCategories = [];
 
 		// --- Online categories
@@ -160,6 +163,7 @@ $(function() {
 				renderRows(vaccines18plus, "vax18plus", true, "#list .only-in-person", undefined, "Vaccines (Ages 18+)");
 				renderRows(vaccines5plus, "vax5plus", true, "#list .only-in-person", undefined, "Vaccines (Ages 5+)");
 				renderRows(scrapedTestingData.data, "testing", true, "#list .only-in-person", undefined, "Testing");
+				renderRows(testToTreatData.data, "treatments", true, "#list .only-in-person", undefined, "Treatments");
 			}
 			
 			if (housingFinancialData !== undefined) {
