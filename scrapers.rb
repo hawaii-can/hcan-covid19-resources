@@ -333,7 +333,7 @@ def hawaiicovid9_data
 	end
 
 	puts "Starting testing_clinics_geojson_url"
-	testing_clinics_geojson_url = "https://services.arcgis.com/HQ0xoN0EzDPBOEci/arcgis/rest/services/COVID19_Screening_Clinics_View/FeatureServer/0/query?f=geojson&cacheHint=true&maxRecordCountFactor=4&resultOffset=0&resultRecordCount=8000&where=(FacT%20%3D%20%27Screening%20Clinic%27)%20OR%20(FacT%20%3D%20%27Temp%20Testing%27)&orderByFields=OBJECTID&outFields=*&outSR=102100&spatialRel=esriSpatialRelIntersects"
+	testing_clinics_geojson_url = "https://services.arcgis.com/HQ0xoN0EzDPBOEci/arcgis/rest/services/c19_WFL1/FeatureServer/0/query?f=geojson&maxRecordCountFactor=4&resultOffset=0&resultRecordCount=8000&where=FacType%20%3D%20%27Screening%20Clinic%27&orderByFields=OBJECTID&outFields=*&spatialRel=esriSpatialRelIntersects"
 	# Properties:
 	# FacName, Place_addr, Phone_1, Hours, Days, Directions (URL), Instru
 	testing_clinics_response = HTTParty.get(testing_clinics_geojson_url)
