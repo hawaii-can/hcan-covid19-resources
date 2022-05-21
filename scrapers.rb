@@ -13,8 +13,17 @@ require 'smarter_csv'
 def vaccines_gov
 	puts "Starting Vaccines.gov"
 
+	# Setup
+	Mapbox.access_token = ENV['MAPBOX_KEY']
+	s3 = Aws::S3::Resource.new(region: ENV['S3_REGION'])
+
+	# Download existing parsed locations
+	s3_locations_object = s3.bucket(ENV['S3_BUCKET']).object("covid_resource_locations.json")
+	s3_current_locations = JSON.parse(s3_locations_object.get.body.read, symbolize_names: true) rescue []
+
 	all_providers = []
 	final_rows = []
+	new_locations = []
 
 	latlngs = {
 		"96720": [19.72, -155.09],
@@ -63,6 +72,7 @@ def vaccines_gov
 	kids_guids = kids_providers.map{|p| p[:guid]}
 
 	all_providers = all_providers.uniq { |p| p[:guid] }
+	puts "Count: #{all_providers.count}"
 	all_providers.each do |provider|
 		provider_url = "https://www.vaccines.gov/provider/?id=#{provider[:guid]}&medications=779bfe52-0dd8-4023-a183-457eb100fccc%2Ca84fb9ed-deb4-461c-b785-e17c782ef88b%2C784db609-dc1f-45a5-bad6-8db02e79d44f&radius=50&appointments=false"
 
@@ -75,14 +85,18 @@ def vaccines_gov
 			description += " Appointments available as of #{date_str}."
 		end
 
+		address = "#{provider[:address1]} #{provider[:address2]}, #{provider[:city]}, #{provider[:state]}, #{provider[:zip]}"
+		geo_data = get_coordinates(address, s3_current_locations)
+		new_locations << geo_data[:new_location] if !geo_data[:new_location].nil?
+
 		final_row = {
 			"Name": provider[:name],
 			"Expiration date": "",
 			"Description": description,
 			"Phone": provider[:phone],
 			"URL": provider_url,
-			"Island": "",
-			"Address": "#{provider[:address1]} #{provider[:address2]}, #{provider[:city]}, #{provider[:state]}, #{provider[:zip]}",
+			"Island": geo_data[:island],
+			"Address": address,
 			"Avail5to11": kids_guids.include?(provider[:guid]),
 			"Coordinates": [provider[:lat], provider[:long]]
 		}
@@ -90,7 +104,10 @@ def vaccines_gov
 	end
 
 	puts "Done."
-	return final_rows
+	return {
+		data: final_rows,
+		new_locations: new_locations
+	}
 end
 
 def oahu_vaccines
@@ -252,7 +269,7 @@ def hawaiicovid9_data
 
 	# Download existing parsed locations
 	s3_locations_object = s3.bucket(ENV['S3_BUCKET']).object("covid_resource_locations.json")
-	s3_current_locations = JSON.parse(s3_locations_object.get.body.read, symbolize_names: true)
+	s3_current_locations = JSON.parse(s3_locations_object.get.body.read, symbolize_names: true) rescue []
 	current_address_ids = s3_current_locations.select{|l| !l.nil?}.map{|r| r[:address_id]}
 
 	# Setup final locations
@@ -293,7 +310,7 @@ def hawaiicovid9_data
 			"Description": "Schedule: #{properties[:Days_Open]}. Hours: #{properties[:Hours]}. Provider: #{properties[:Provider]}. Type: #{properties[:Type]}. Listed on HawaiiCOVID19.com.",
 			"Phone": "",
 			"URL": properties[:Website],
-			"Island": fix_islands[properties[:Island]],
+			"Island": coordinates_data[:island],
 			"Address": address,
 			"RawCoordinates": feature[:geometry][:coordinates],
 			"Coordinates": coordinates,
@@ -324,7 +341,7 @@ def hawaiicovid9_data
 			"Description": "Popup testing site. #{properties[:USER_Instruct]} Schedule: #{properties[:USER_Hours]}. Listed on HawaiiCOVID19.com.",
 			"Phone": "",
 			"URL": properties[:USER_Register],
-			"Island": "",
+			"Island": coordinates_data[:island],
 			"Address": address,
 			"RawCoordinates": feature[:geometry][:coordinates],
 			"Coordinates": coordinates
@@ -353,7 +370,7 @@ def hawaiicovid9_data
 			"Description": "#{properties[:Instru]} Schedule: #{properties[:Days]}. Hours: #{properties[:Hours]}. Listed on HawaiiCOVID19.com.",
 			"Phone": properties[:Phone_1],
 			"URL": properties[:Directions],
-			"Island": "",
+			"Island": coordinates_data[:island],
 			"Address": address,
 			"RawCoordinates": feature[:geometry][:coordinates],
 			"Coordinates": coordinates
@@ -366,7 +383,7 @@ def hawaiicovid9_data
 	# https://healthdata.gov/Health/COVID-19-Test-to-Treat/6m8a-tsjg
 	test_to_treat_response = HTTParty.get(test_to_treat_url)
 	test_to_treat_data = JSON.parse(test_to_treat_response.body, symbolize_names: true)
-	puts "Count: #{testing_popup_data.count}"
+	puts "Count: #{test_to_treat_data.count}"
 	test_to_treat_data.each do |location|
 		address = location.slice(:address1, :address2, :city, :state, :zip).values.join(", ")
 		coordinates_data = get_coordinates(address, s3_current_locations)
@@ -384,7 +401,7 @@ def hawaiicovid9_data
 			"Description": "Received an order of Paxlovid or Lagevrio (molnupiravir) in the last two months and/or have reported availability of the oral antiviral medications within the last two weeks.#{last_reported_date_str} Via HealthData.gov.",
 			"Phone": "",
 			"URL": "",
-			"Island": "",
+			"Island": coordinates_data[:island],
 			"Address": address,
 			"RawCoordinates": location[:geopoint][:coordinates],
 			"Coordinates": coordinates
@@ -398,13 +415,15 @@ def hawaiicovid9_data
 	s3_testing_object = s3.bucket(ENV['S3_BUCKET']).object("covid_scraped_testing.json")
 	s3_test_to_treat_object = s3.bucket(ENV['S3_BUCKET']).object("covid_scraped_test_to_treat.json")
 
+	vaccines_gov_results = vaccines_gov
+
 	date_str = (Time.now.utc-10*60*60).strftime("%B %-d, %Y")
 	all_testing = {
 		data: all_testing_data,
 		lastUpdated: date_str
 	}
 	all_vaccines = {
-		data: [all_vaccines_data, vaccines_gov].flatten,
+		data: [all_vaccines_data, vaccines_gov_results[:data]].flatten,
 		lastUpdated: date_str	
 	}
 	all_test_to_treat = {
@@ -417,6 +436,8 @@ def hawaiicovid9_data
 	s3_test_to_treat_object.put(body: all_test_to_treat.to_json)
 
 	puts "Saved scraped data."
+
+	new_locations.concat(vaccines_gov_results[:new_locations])
 
 	if new_locations.any?
 		puts "New locations = #{new_locations}"
@@ -435,15 +456,22 @@ def get_coordinates(address, s3_current_locations)
 		address_id = address.downcase.gsub(/\W/,'')
 		if existingLatLng = s3_current_locations.find{|loc| loc[:address_id] == address_id}
 			coordinates_data[:coordinates] = [existingLatLng[:lat], existingLatLng[:lng]]
+			coordinates_data[:island] = existingLatLng[:island]
 		else
-			lng_lat = geocode(address)
+			geocoded_address = geocode(address)
+			lng_lat = geocoded_address[:coordinates]
 			new_location = {
 				address_id: address_id,
 				lng: lng_lat.first,
 				lat: lng_lat.last
 			}
+			if !geocoded_address[:island].nil?
+				new_location[:island] = geocoded_address[:island]
+			end
 			coordinates_data[:new_location] = new_location
 			coordinates_data[:coordinates] = [new_location[:lat], new_location[:lng]]
+			coordinates_data[:island] = new_location[:island]
+			p new_location
 		end
 	end
 	return coordinates_data
@@ -453,11 +481,42 @@ def geocode(address_str)
 	puts "geocoding #{address_str}"
 	begin
 		place = Mapbox::Geocoder.geocode_forward(address_str, limit: 1, country: 'US')
-		return place.first["features"].first["center"]
+		feature = place.first["features"].first
+		return {
+			coordinates: feature["center"],
+			island: get_island(feature)
+		}
 	rescue StandardError => error
 		puts "Error: #{error.inspect}"
 		return nil
 	end
+end
+
+def get_island(feature)
+	county_context = feature["context"].select{|ctx| ctx["text"].include? "County"}
+	if county_context.any?
+		case county_context.first["text"]
+		when "Honolulu County"
+			return "Oʻahu"
+		when "Hawaii County"
+			return "Hawaiʻi"
+		when "Kauai County"
+			return "Kauaʻi"
+		when "Maui County"
+			zip_context = feature["context"].select{|ctx| ctx["id"].include? "postcode"}
+			if zip_context.any?
+				zipcode = zip_context.first["text"]
+				if zipcode == "96763"
+					return "Lānaʻi"
+				elsif ["96748", "96742", "96757", "96729", "96770"].include? zipcode
+					return "Molokaʻi"
+				else
+					return "Maui"
+				end
+			end
+		end
+	end
+	return nil
 end
 
 # save_data
