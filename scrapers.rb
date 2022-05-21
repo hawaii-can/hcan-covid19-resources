@@ -368,16 +368,20 @@ def hawaiicovid9_data
 	test_to_treat_data = JSON.parse(test_to_treat_response.body, symbolize_names: true)
 	puts "Count: #{testing_popup_data.count}"
 	test_to_treat_data.each do |location|
-		address = location.slice(:address1, :address2, :city, :state, :zip).join(", ")
+		address = location.slice(:address1, :address2, :city, :state, :zip).values.join(", ")
 		coordinates_data = get_coordinates(address, s3_current_locations)
 		coordinates = coordinates_data[:coordinates]
 		new_locations << coordinates_data[:new_location] if !coordinates_data[:new_location].nil?
 
-		last_reported_date = Time.parse(location[:last_report_date]).strftime("%b %e, %Y")
+		last_reported_date_str = ""
+		if !location[:last_report_date].nil?
+			last_reported_date = Time.parse(location[:last_report_date]).strftime("%b %e, %Y")
+			last_reported_date_str = " Last reported date: #{last_reported_date}."
+		end
 
 		final_row = {
 			"Name": location[:provider_name],
-			"Description": "Received an order of Paxlovid or Lagevrio (molnupiravir) in the last two months and/or have reported availability of the oral antiviral medications within the last two weeks. Last reported date: #{last_reported_date}. according to HealthData.gov.",
+			"Description": "Received an order of Paxlovid or Lagevrio (molnupiravir) in the last two months and/or have reported availability of the oral antiviral medications within the last two weeks.#{last_reported_date_str} Via HealthData.gov.",
 			"Phone": "",
 			"URL": "",
 			"Island": "",
@@ -410,7 +414,7 @@ def hawaiicovid9_data
 
 	s3_vaccines_object.put(body: all_vaccines.to_json)
 	s3_testing_object.put(body: all_testing.to_json)
-	s3_test_to_treat_object.put(body: all_test_to_treat.json)
+	s3_test_to_treat_object.put(body: all_test_to_treat.to_json)
 
 	puts "Saved scraped data."
 
