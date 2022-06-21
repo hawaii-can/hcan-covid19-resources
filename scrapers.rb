@@ -36,7 +36,9 @@ def vaccines_gov
 		"Pfizer-BioNTech (age 5-11)" => "25f1389c-5597-47cc-9a9d-3925d60d9c21",
 		"Moderna (age 18+)" => "779bfe52-0dd8-4023-a183-457eb100fccc",
 		"Pfizer-BioNTech (age 12+)" => "a84fb9ed-deb4-461c-b785-e17c782ef88b",
-		"Johnson & Johnson/Janssen (age 18+)" => "784db609-dc1f-45a5-bad6-8db02e79d44f"
+		"Johnson & Johnson/Janssen (age 18+)" => "784db609-dc1f-45a5-bad6-8db02e79d44f",
+		"Pfizer-BioNTech (age 6mo-4)" => "d0d2c703-1638-4623-85a8-d70c0da14dc7",
+		"Moderna (age 6mo-5)" => "4d9af7f8-2acc-4ee2-b2cc-c5ebcfc12890"
 	}
 
 	# All vaccines
@@ -71,6 +73,25 @@ def vaccines_gov
 	end
 	kids_guids = kids_providers.map{|p| p[:guid]}
 
+	# Just 6 months - 4 yrs
+	under5_providers = []
+	latlngs.each do |zip, latlng|
+		lat = latlng.first
+		lng = latlng.last
+		vax_codes = all_vax_codes.slice("Pfizer-BioNTech (age 6mo-4)","Moderna (age 6mo-5)").values.join(",")
+		url = "https://api.us.castlighthealth.com/vaccine-finder/v1/provider-locations/search?medicationGuids=#{vax_codes}&lat=#{lat}&long=#{lng}&radius=100&appointments=false"
+
+		response = HTTParty.get(url,
+			headers:{ 'Content-Type' => 'application/json', 'Accept' => 'application/json'}
+		)
+		results_list = JSON.parse(response.body, symbolize_names: true)
+		providers = results_list[:providers]
+		under5_providers.concat(providers)
+	end
+	puts "Under 5 providers: #{under5_providers.count}"
+	under5_guids = under5_providers.map{|p| p[:guid]}
+
+
 	all_providers = all_providers.uniq { |p| p[:guid] }
 	puts "Count: #{all_providers.count}"
 	all_providers.each do |provider|
@@ -98,6 +119,7 @@ def vaccines_gov
 			"Island": geo_data[:island],
 			"Address": address,
 			"Avail5to11": kids_guids.include?(provider[:guid]),
+			"AvailUnder5": under5_guids.include?(provider[:guid]),
 			"Coordinates": [provider[:lat], provider[:long]]
 		}
 		final_rows << final_row
@@ -299,6 +321,8 @@ def hawaiicovid9_data
 		properties = feature[:properties]
 		avail5to11 = properties[:Notes] == "Offering Vaccine to the 5-11 Population"
 		
+		availunder5 = false
+		
 		address = "#{properties[:Address]}, #{properties[:City]}, HI, #{properties[:Zipcode]}"
 		coordinates_data = get_coordinates(address, s3_current_locations)
 		coordinates = coordinates_data[:coordinates]
@@ -314,7 +338,8 @@ def hawaiicovid9_data
 			"Address": address,
 			"RawCoordinates": feature[:geometry][:coordinates],
 			"Coordinates": coordinates,
-			"Avail5to11": avail5to11
+			"Avail5to11": avail5to11,
+			"AvailUnder5": availunder5
 		}
 		all_vaccines_data << final_row
 	end
