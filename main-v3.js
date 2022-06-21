@@ -91,7 +91,7 @@ $(function() {
 		// Fix:
 		// Reassign old variables
 
-		var categories = createCategories(["Vaccines (Ages 5+)", "Vaccines (Ages 18+)", "Testing", "Treatments"], "Everything", "#category-list-in-person");
+		var categories = createCategories(["Vaccines (Ages 6 months+)", "Vaccines (Ages 5+)", "Vaccines (Ages 18+)", "Testing", "Treatments"], "Everything", "#category-list-in-person");
 		var onlineCategories = [];
 
 		// --- Online categories
@@ -164,9 +164,13 @@ $(function() {
 				vaccines5plus = _(scrapedVaccineData.data).filter(function(provider) {
 					return provider.Avail5to11;
 				});
+				vaccinesUnder5 = _(scrapedVaccineData.data).filter(function(provider) {
+					return provider.AvailUnder5;
+				});
 
 				renderRows(vaccines18plus, "vax18plus", true, "#list .only-in-person", undefined, "Vaccines (Ages 18+)");
 				renderRows(vaccines5plus, "vax5plus", true, "#list .only-in-person", undefined, "Vaccines (Ages 5+)");
+				renderRows(vaccinesUnder5, "vaxUnder5", true, "#list .only-in-person", undefined, "Vaccines (Ages 6 months+)");
 				renderRows(scrapedTestingData.data, "testing", true, "#list .only-in-person", undefined, "Testing");
 				renderRows(testToTreatData.data, "treatments", true, "#list .only-in-person", undefined, "Treatments");
 			}
@@ -365,7 +369,7 @@ $(function() {
 
 	function assignCategoryColors(categoriesArr,everythingText) {
 		var allCategories = _.chain(categoriesArr).flatten().uniq().filter(function(val){ return val != everythingText }).value().sort();
-		var colors = ["#e66101", "#5e3c99", "#d01c8b", "#018571"];
+		var colors = ["#e66101", "#5e3c99", "#d01c8b", "#018571", "#1478B8"];
 
 		_(allCategories).each(function(category, index) {
 			var color = colors[index];
