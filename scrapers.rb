@@ -320,8 +320,7 @@ def hawaiicovid9_data
 	vaccine_data[:features].each do |feature|
 		properties = feature[:properties]
 		avail5to11 = properties[:Notes] == "Offering Vaccine to the 5-11 Population"
-		
-		availunder5 = false
+		availunder5 = properties[:AgeVax] == "Under Five"
 		
 		address = "#{properties[:Address]}, #{properties[:City]}, HI, #{properties[:Zipcode]}"
 		coordinates_data = get_coordinates(address, s3_current_locations)
